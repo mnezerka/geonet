@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<gpx xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://www.topografix.com/GPX/1/1" xsi:schemaLocation="http://www.topografix.com/GPX/1/1 http://www.topografix.com/GPX/1/1/gpx.xsd http://www.garmin.com/xmlschemas/GpxExtensions/v3 http://www.garmin.com/xmlschemas/GpxExtensionsv3.xsd http://www.garmin.com/xmlschemas/TrackPointExtension/v1 http://www.garmin.com/xmlschemas/TrackPointExtensionv1.xsd http://www.topografix.com/GPX/gpx_style/0/2 http://www.topografix.com/GPX/gpx_style/0/2/gpx_style.xsd" xmlns:gpxtpx="http://www.garmin.com/xmlschemas/TrackPointExtension/v1" xmlns:gpxx="http://www.garmin.com/xmlschemas/GpxExtensions/v3" xmlns:gpx_style="http://www.topografix.com/GPX/gpx_style/0/2" version="1.1" creator="https://gpx.studio">
+<trk>
+    <name>Second</name>
+    <trkseg>
+    <trkpt lat="49.22246038167745" lon="16.553370952606205">
+        <ele>225.3</ele>
+    </trkpt>
+    <trkpt lat="49.22162651091149" lon="16.552882790565494">
+        <ele>219.4</ele>
+    </trkpt>
+    <trkpt lat="49.22152490384806" lon="16.549841165542606">
+        <ele>224.7</ele>
+    </trkpt>
+    <trkpt lat="49.22121307396971" lon="16.549444198608402">
+        <ele>222.2</ele>
+    </trkpt>
+    <trkpt lat="49.22024603846395" lon="16.549830436706547">
+        <ele>214.6</ele>
+    </trkpt>
+    <trkpt lat="49.220358159492385" lon="16.550323963165287">
+        <ele>214.3</ele>
+    </trkpt>
+    <trkpt lat="49.21886202357068" lon="16.55152559280396">
+        <ele>211.4</ele>
+    </trkpt>
+    </trkseg>
+</trk>
+</gpx>
