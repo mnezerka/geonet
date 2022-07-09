@@ -6,6 +6,8 @@ import (
 	"math"
 	"os"
 
+	"mnezerka/geonet/cmd"
+
 	"github.com/ptrv/go-gpx"
 )
 
@@ -90,7 +92,7 @@ func store_to_gpx(store *gpx.Waypoints, filename string) {
 
 }
 
-func main() {
+func maino() {
 
 	// test case
 	//p1 := gpx.Wpt{Lat: -0.116773, Lon: 51.510357}
@@ -157,4 +159,8 @@ func main() {
 	}
 
 	store_to_gpx(&store, "all.gpx")
+}
+
+func main() {
+	cmd.Execute()
 }
