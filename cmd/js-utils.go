@@ -29,7 +29,8 @@ func GpxToPolyline(gpx *gpx.Gpx, index int) string {
 				points += fmt.Sprintf("[%f, %f]", gpx.Tracks[i].Segments[j].Waypoints[k].Lat, gpx.Tracks[i].Segments[j].Waypoints[k].Lon)
 				points += ",\n"
 
-				result += fmt.Sprintf("var circle = L.circle([%f, %f], {radius:1}).addTo(map).bindTooltip('%d / %d');\n", gpx.Tracks[i].Segments[j].Waypoints[k].Lat, gpx.Tracks[i].Segments[j].Waypoints[k].Lon, index, order)
+				//result += fmt.Sprintf("var circle = L.circle([%f, %f], {radius:1}).addTo(map).bindTooltip('%d / %d');\n", gpx.Tracks[i].Segments[j].Waypoints[k].Lat, gpx.Tracks[i].Segments[j].Waypoints[k].Lon, index, order)
+				result += fmt.Sprintf("var circle = L.circle([%f, %f], {radius:1}).addTo(map);\n", gpx.Tracks[i].Segments[j].Waypoints[k].Lat, gpx.Tracks[i].Segments[j].Waypoints[k].Lon)
 				order++
 			}
 		}
@@ -48,7 +49,7 @@ func StoreHullsToPolygons(s *store.Store) string {
 
 	for id, h := range s.Hulls {
 		r := h.BoundRect()
-		result += fmt.Sprintf("var rect%d = L.rectangle([[%f, %f], [%f, %f]], {color: 'red', weight: '1'}).addTo(map);\n", id, r.Corner1.X, r.Corner1.Y, r.Corner2.X, r.Corner2.Y)
+		result += fmt.Sprintf("var rect%d = L.rectangle([[%f, %f], [%f, %f]], {color: 'red', weight: '1'}).addTo(map).bindTooltip('hull %d');\n", id, r.Corner1.X, r.Corner1.Y, r.Corner2.X, r.Corner2.Y, id)
 	}
 
 	return result
@@ -63,7 +64,7 @@ func StoreLinesToPolylines(s *store.Store) string {
 		//log.Infof("ha %v hb %v", )
 		ca := ha.BoundRect().Center()
 		cb := hb.BoundRect().Center()
-		result += fmt.Sprintf("var polyline%d = L.polyline([[%f, %f], [%f, %f]], {color: 'green', dashArray: '4', weight: '1'}).addTo(map);\n", i, ca.X, ca.Y, cb.X, cb.Y)
+		result += fmt.Sprintf("var polyline%d = L.polyline([[%f, %f], [%f, %f]], {color: 'green', weight: '1'}).addTo(map);\n", i, ca.X, ca.Y, cb.X, cb.Y)
 	}
 
 	return result

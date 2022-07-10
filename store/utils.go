@@ -52,7 +52,9 @@ can be calculated as |EF| = |(AB X AE)/|AB||
                    |
    A ----------------- B
 */
-func Distance(a, b, e Point) float64 {
+func Distance(a, b, e Point) (float64, bool) {
+
+	perpendicular := false
 
 	// vector AB
 	ab := Vector{b.X - a.X, b.Y - a.Y}
@@ -95,6 +97,7 @@ func Distance(a, b, e Point) float64 {
 		var y2 float64 = ae.Y
 		var mod float64 = math.Sqrt(x1*x1 + y1*y1)
 		reqAns = math.Abs(x1*y2-y1*x2) / mod
+		perpendicular = true
 	}
-	return reqAns
+	return reqAns, perpendicular
 }

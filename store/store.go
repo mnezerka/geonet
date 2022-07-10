@@ -41,6 +41,7 @@ func (s *Store) AddPoint(p gpx.Wpt, sizeTreshold float64) *Hull4 {
 	var result *Hull4 = nil
 	for id, h := range s.Hulls {
 
+		// try to join existing hull with the new point
 		joined := h.Add(*new)
 
 		// if joined size is under threshold
@@ -52,11 +53,17 @@ func (s *Store) AddPoint(p gpx.Wpt, sizeTreshold float64) *Hull4 {
 		}
 	}
 
-	// no existing hull was close -> create new one
+	// no existing hull was close enough -> create new one
 	if result == nil {
 		s.Log.Infof("  registering new hull (%d)", new.Id)
 		s.Hulls[new.Id] = new
 		result = new
+
+		// try to find a line, which is close by
+		linesInRange := s.LinesInHullRange(new, sizeTreshold)
+		for i := 0; i < len(linesInRange); i++ {
+			s.Log.Infof("  close to line %v", linesInRange[i])
+		}
 	}
 
 	return result
@@ -114,4 +121,24 @@ func (s *Store) AddGpx(gpx *gpx.Gpx, sizeTreshold float64) {
 	s.Log.Info("gpx added")
 	s.Log.Infof("  hulls: %d", len(s.Hulls))
 	s.Log.Infof("  lines: %d", len(s.Lines))
+}
+
+func (s *Store) LinesInHullRange(h *Hull4, sizeTreshold float64) []*Line {
+
+	result := []*Line{}
+
+	for i := 0; i < len(s.Lines); i++ {
+		ha := s.Hulls[s.Lines[i].A]
+		hb := s.Hulls[s.Lines[i].B]
+		ca := ha.BoundRect().Center()
+		cb := hb.BoundRect().Center()
+
+		d, p := Distance(ca, cb, h.BoundRect().Center())
+		// if perpendicular projection lays on line and distance is in range
+		if p && d < sizeTreshold {
+			result = append(result, s.Lines[i])
+		}
+	}
+
+	return result
 }
