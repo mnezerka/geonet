@@ -11,16 +11,21 @@ var Hull4BoundVectors = []Vector{
 	{0, -1},
 }
 
+type HullId int64
+
 type Hull4 struct {
 	Bounds [4]float64
+	Id     HullId
 }
 
-func NewHull4FromVector(v Vector) *Hull4 {
+func NewHull4FromVector(v Vector, id HullId) *Hull4 {
 	h := new(Hull4)
 
 	for i := 0; i < 4; i++ {
 		h.Bounds[i] = v.Dot(Hull4BoundVectors[i])
 	}
+
+	h.Id = id
 
 	return h
 }
@@ -53,4 +58,13 @@ func (h Hull4) BoundRect() Rect {
 	}
 
 	return Rect{Point{v[0].X, v[2].Y}, Point{v[1].X, v[3].Y}}
+}
+
+func (h Hull4) Equals(h2 *Hull4) bool {
+	for i := 0; i < 4; i++ {
+		if h.Bounds[i] != h2.Bounds[i] {
+			return false
+		}
+	}
+	return true
 }

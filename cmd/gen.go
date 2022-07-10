@@ -38,12 +38,15 @@ var genCmd = &cobra.Command{
 			store.AddGpx(gpx, 0.0002)
 
 			// visualize add polyline
-			js = append(js, GpxToPolyline(gpx))
+			js = append(js, GpxToPolyline(gpx, file_ix+1))
 
 		}
 
 		// visualize hulls
 		js = append(js, StoreHullsToPolygons(store))
+
+		// visualize lines
+		js = append(js, StoreLinesToPolylines(store))
 
 		t, err := template.ParseFiles("cmd/tpl_preview.html")
 		if err != nil {
