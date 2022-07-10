@@ -2,8 +2,6 @@ package store
 
 import (
 	"math"
-
-	"github.com/apex/log"
 )
 
 var Hull4BoundVectors = []Vector{
@@ -50,14 +48,9 @@ func (h Hull4) BoundRect() Rect {
 	v := make([]Vector, len(Hull4BoundVectors))
 	copy(v, Hull4BoundVectors)
 
-	log.Infof("hull %v", h)
-	log.Infof("hull bound vectors %v", v)
-
 	for i := 0; i < 4; i++ {
 		v[i] = v[i].Scalar(h.Bounds[i])
 	}
-
-	log.Infof("hull vectors %v", v)
 
 	return Rect{Point{v[0].X, v[2].Y}, Point{v[1].X, v[3].Y}}
 }

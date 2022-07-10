@@ -35,14 +35,15 @@ var genCmd = &cobra.Command{
 			//fmt.Printf("  length 2D: %f\n", gpx.Length2D())
 			//fmt.Printf("  tracks: %d\n", len(gpx.Tracks))
 
-			store.AddGpx(gpx, 0.0005)
+			store.AddGpx(gpx, 0.0002)
 
 			// visualize add polyline
 			js = append(js, GpxToPolyline(gpx))
 
-			// visualize hulls
-			js = append(js, StoreHullsToPolygons(store))
 		}
+
+		// visualize hulls
+		js = append(js, StoreHullsToPolygons(store))
 
 		t, err := template.ParseFiles("cmd/tpl_preview.html")
 		if err != nil {

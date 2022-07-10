@@ -72,6 +72,4 @@ func (s *Store) AddGpx(gpx *gpx.Gpx, sizeTreshold float64) {
 
 	s.Log.Info("gpx added")
 	s.Log.Infof("  hulls: %d", len(s.Hulls))
-	s.Log.Infof("  size: %f", s.Hulls[0].Size())
-
 }
