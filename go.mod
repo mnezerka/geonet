@@ -5,6 +5,7 @@ go 1.17
 require github.com/ptrv/go-gpx v0.0.0-20151216232927-c93804873f99
 
 require (
+	github.com/apex/log v1.9.0
 	github.com/spf13/cobra v1.5.0
 	github.com/spf13/viper v1.12.0
 	github.com/stretchr/testify v1.8.0

@@ -1,4 +1,4 @@
-package main
+package store
 
 import (
 	"testing"
@@ -19,4 +19,9 @@ func TestDotProductOfTwoPerpendicularVectors(t *testing.T) {
 func TestDotProductOfTwoParallelVectors(t *testing.T) {
 	result := Vector{1., 0.}.Dot(Vector{1., 0.})
 	assert.Equal(t, 1., result, "dot product of two parallel vectors is 1")
+}
+
+func TestScalarProduct(t *testing.T) {
+	result := Vector{2., 3.}.Scalar(5)
+	assert.Equal(t, Vector{10, 15}, result, "dot product of two parallel vectors is 1")
 }

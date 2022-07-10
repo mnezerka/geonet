@@ -1,4 +1,4 @@
-package main
+package store
 
 // Vector - struct holding X Y values of a 2D vector
 type Vector struct {
@@ -13,4 +13,10 @@ func (a Vector) Add(b Vector) Vector {
 
 func (a Vector) Dot(b Vector) float64 {
 	return a.X*b.X + a.Y*b.Y
+}
+
+func (a Vector) Scalar(v float64) Vector {
+	a.X *= v
+	a.Y *= v
+	return a
 }
