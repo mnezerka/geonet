@@ -6,6 +6,11 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func TestVectorFromPoints(t *testing.T) {
+	v := VectorFromPoints(Point{0, 0}, Point{3, 4})
+	assert.Equal(t, Vector{3., 4.}, v, "should add correctly")
+}
+
 func TestAdd(t *testing.T) {
 	result := Vector{1., 1.}.Add(Vector{2., 2.})
 	assert.Equal(t, Vector{3., 3.}, result, "should add correctly")

@@ -5,11 +5,13 @@ import (
 	"github.com/ptrv/go-gpx"
 )
 
+type StoreId int64
+
 type Store struct {
-	Hulls  map[HullId]*Hull4
-	Lines  []*Line
+	Hulls  map[StoreId]*Hull4
+	Lines  map[StoreId]*Line
 	Log    *log.Entry
-	LastId HullId
+	LastId StoreId
 }
 
 func NewStore() *Store {
@@ -22,12 +24,13 @@ func NewStore() *Store {
 	s.Log.Info("creating store")
 
 	s.LastId = 0
-	s.Hulls = make(map[HullId]*Hull4)
+	s.Hulls = make(map[StoreId]*Hull4)
+	s.Lines = make(map[StoreId]*Line)
 
 	return &s
 }
 
-func (s *Store) GetId() HullId {
+func (s *Store) GetId() StoreId {
 	s.LastId++
 	return s.LastId
 }
@@ -60,9 +63,60 @@ func (s *Store) AddPoint(p gpx.Wpt, sizeTreshold float64) *Hull4 {
 		result = new
 
 		// try to find a line, which is close by
-		linesInRange := s.LinesInHullRange(new, sizeTreshold)
-		for i := 0; i < len(linesInRange); i++ {
-			s.Log.Infof("  close to line %v", linesInRange[i])
+		lineInRange := s.LineInHullRange(new, sizeTreshold)
+		if lineInRange != nil {
+			s.Log.Infof("  close to line %s", lineInRange.Str())
+
+			//         lineInRange
+			//   a -------------------------- b
+			//            |
+			//            |
+			//            x new center
+			//            |
+			//            |
+			//            new
+
+			// move new hull to the middle distance between line and it's position
+			ha := s.Hulls[lineInRange.A]
+			hb := s.Hulls[lineInRange.B]
+			ca := ha.BoundRect().Center()
+			cb := hb.BoundRect().Center()
+
+			// center of new hull
+			cnew := new.BoundRect().Center()
+
+			s.Log.Infof("    cnew: %v", cnew)
+
+			// get projection of new hull to the line
+			proj := Projection(ca, cb, cnew)
+			s.Log.Infof("    proj: %v", proj)
+
+			// vectror from new to projection point
+			// and shrink newproj to half length
+			move := VectorFromPoints(proj, cnew).Scalar(.5)
+
+			s.Log.Infof("    move: %v", move)
+
+			center := VectorFromPoint(cnew).Sub(move)
+
+			s.Log.Infof("    center: %v", center)
+
+			// create new hull with the same id
+			new = NewHull4FromVector(center, new.Id)
+			s.Hulls[new.Id] = new
+			result = new
+
+			s.Log.Infof("    new hull moved to %v", new.BoundRect().Center())
+
+			// split line to two segments
+			// TODO: lineInRange.A.
+			s.Log.Infof("    splitting %s", lineInRange.Str())
+			newLine := &Line{new.Id, lineInRange.B, s.GetId()}
+			s.Lines[newLine.Id] = newLine
+			lineInRange.B = new.Id
+
+			s.Log.Infof("      new line registered %s", newLine.Str())
+			s.Log.Infof("      existing line changed to %s", lineInRange.Str())
 		}
 	}
 
@@ -72,22 +126,22 @@ func (s *Store) AddPoint(p gpx.Wpt, sizeTreshold float64) *Hull4 {
 func (s *Store) AddLine(lastHull, targetHull *Hull4) {
 	s.Log.Info("add line")
 
-	newLine := &Line{lastHull.Id, targetHull.Id}
+	newLine := &Line{lastHull.Id, targetHull.Id, s.GetId()}
 
 	// check if line already exists
 	var line *Line = nil
-	for i := 0; i < len(s.Lines); i++ {
-		if s.Lines[i].Equals(newLine) {
-			line = s.Lines[i]
+	for _, l := range s.Lines {
+		if l.Equals(newLine) {
+			line = l
 			break
 		}
 	}
 
 	if line == nil {
-		s.Log.Info("  new line registered")
-		s.Lines = append(s.Lines, newLine)
+		s.Log.Infof("  new line registered (%d)", newLine.Id)
+		s.Lines[newLine.Id] = newLine
 	} else {
-		s.Log.Info("  updating existing line")
+		s.Log.Infof("  updating existing line (%d)", line.Id)
 	}
 
 }
@@ -123,20 +177,22 @@ func (s *Store) AddGpx(gpx *gpx.Gpx, sizeTreshold float64) {
 	s.Log.Infof("  lines: %d", len(s.Lines))
 }
 
-func (s *Store) LinesInHullRange(h *Hull4, sizeTreshold float64) []*Line {
+func (s *Store) LineInHullRange(h *Hull4, sizeTreshold float64) *Line {
 
-	result := []*Line{}
+	var result *Line = nil
+	min := sizeTreshold
 
-	for i := 0; i < len(s.Lines); i++ {
-		ha := s.Hulls[s.Lines[i].A]
-		hb := s.Hulls[s.Lines[i].B]
+	for _, line := range s.Lines {
+		ha := s.Hulls[line.A]
+		hb := s.Hulls[line.B]
 		ca := ha.BoundRect().Center()
 		cb := hb.BoundRect().Center()
 
 		d, p := Distance(ca, cb, h.BoundRect().Center())
 		// if perpendicular projection lays on line and distance is in range
-		if p && d < sizeTreshold {
-			result = append(result, s.Lines[i])
+		if p && d < min {
+			result = line
+			min = d
 		}
 	}
 

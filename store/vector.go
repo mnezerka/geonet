@@ -5,9 +5,23 @@ type Vector struct {
 	X, Y float64
 }
 
+func VectorFromPoint(a Point) Vector {
+	return Vector{a.X, a.Y}
+}
+
+func VectorFromPoints(a, b Point) Vector {
+	return Vector{b.X - a.X, b.Y - a.Y}
+}
+
 func (a Vector) Add(b Vector) Vector {
 	a.X += b.X
 	a.Y += b.Y
+	return a
+}
+
+func (a Vector) Sub(b Vector) Vector {
+	a.X -= b.X
+	a.Y -= b.Y
 	return a
 }
 

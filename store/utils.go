@@ -101,3 +101,32 @@ func Distance(a, b, e Point) (float64, bool) {
 	}
 	return reqAns, perpendicular
 }
+
+/*
+Get projected point P' of P on line e1. Faster version.
+@return projected point p.
+
+   a          p'                    b
+   +----------+---------------------+
+              |
+              |
+              |
+              x p
+
+http://www.sunshine2k.de/coding/java/PointOnLine/PointOnLine.html
+*/
+func Projection(a, b, p Point) Point {
+
+	// get dot product of e1, e2
+	e1 := Vector{b.X - a.X, b.Y - a.Y}
+	e2 := Vector{p.X - a.X, p.Y - a.Y}
+
+	valDp := e1.Dot(e2)
+
+	// get squared length of e1
+	len2 := e1.X*e1.X + e1.Y*e1.Y
+
+	projection := Point{(a.X + (valDp*e1.X)/len2), (a.Y + (valDp*e1.Y)/len2)}
+
+	return projection
+}

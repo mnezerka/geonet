@@ -38,7 +38,7 @@ func GpxToPolyline(gpx *gpx.Gpx, index int) string {
 	}
 
 	if len(points) > 0 {
-		result += fmt.Sprintf("var polyline = L.polyline(%s, {color: 'blue', weight: '2', opacity: '0.3'}).addTo(map);\n", points)
+		result += fmt.Sprintf("var polyline = L.polyline(%s, {color: 'blue', weight: '2',dashArray: '2 4', opacity: '1'}).addTo(map);\n", points)
 		result += "if (bounds === null) { bounds = polyline.getBounds() } else { bounds.extend(polyline.getBounds()); };\n"
 	}
 	return result
@@ -49,7 +49,12 @@ func StoreHullsToPolygons(s *store.Store) string {
 
 	for id, h := range s.Hulls {
 		r := h.BoundRect()
-		result += fmt.Sprintf("var rect%d = L.rectangle([[%f, %f], [%f, %f]], {color: 'red', weight: '1'}).addTo(map).bindTooltip('hull %d');\n", id, r.Corner1.X, r.Corner1.Y, r.Corner2.X, r.Corner2.Y, id)
+		rc := r.Center()
+		if h.Size() == 0 {
+			result += fmt.Sprintf("var hullcircle%d = L.circle([%f, %f], {radius: 1.5, color: 'red', weight: '3'}).addTo(map).bindTooltip('hull %d');\n", id, rc.X, rc.Y, id)
+		} else {
+			result += fmt.Sprintf("var rect%d = L.rectangle([[%f, %f], [%f, %f]], {color: 'red', weight: '5'}).addTo(map).bindTooltip('hull %d');\n", id, r.Corner1.X, r.Corner1.Y, r.Corner2.X, r.Corner2.Y, id)
+		}
 	}
 
 	return result
@@ -58,13 +63,13 @@ func StoreHullsToPolygons(s *store.Store) string {
 func StoreLinesToPolylines(s *store.Store) string {
 	result := ""
 
-	for i := 0; i < len(s.Lines); i++ {
-		ha := s.Hulls[s.Lines[i].A]
-		hb := s.Hulls[s.Lines[i].B]
+	for _, line := range s.Lines {
+		ha := s.Hulls[line.A]
+		hb := s.Hulls[line.B]
 		//log.Infof("ha %v hb %v", )
 		ca := ha.BoundRect().Center()
 		cb := hb.BoundRect().Center()
-		result += fmt.Sprintf("var polyline%d = L.polyline([[%f, %f], [%f, %f]], {color: 'green', weight: '1'}).addTo(map);\n", i, ca.X, ca.Y, cb.X, cb.Y)
+		result += fmt.Sprintf("var polyline%d = L.polyline([[%f, %f], [%f, %f]], {color: 'green', weight: '2'}).addTo(map);\n", line.Id, ca.X, ca.Y, cb.X, cb.Y)
 	}
 
 	return result

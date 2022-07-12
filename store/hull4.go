@@ -11,14 +11,12 @@ var Hull4BoundVectors = []Vector{
 	{0, -1},
 }
 
-type HullId int64
-
 type Hull4 struct {
 	Bounds [4]float64
-	Id     HullId
+	Id     StoreId
 }
 
-func NewHull4FromVector(v Vector, id HullId) *Hull4 {
+func NewHull4FromVector(v Vector, id StoreId) *Hull4 {
 	h := new(Hull4)
 
 	for i := 0; i < 4; i++ {
