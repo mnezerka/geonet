@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<gpx xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://www.topografix.com/GPX/1/1" xsi:schemaLocation="http://www.topografix.com/GPX/1/1 http://www.topografix.com/GPX/1/1/gpx.xsd http://www.garmin.com/xmlschemas/GpxExtensions/v3 http://www.garmin.com/xmlschemas/GpxExtensionsv3.xsd http://www.garmin.com/xmlschemas/TrackPointExtension/v1 http://www.garmin.com/xmlschemas/TrackPointExtensionv1.xsd http://www.topografix.com/GPX/gpx_style/0/2 http://www.topografix.com/GPX/gpx_style/0/2/gpx_style.xsd" xmlns:gpxtpx="http://www.garmin.com/xmlschemas/TrackPointExtension/v1" xmlns:gpxx="http://www.garmin.com/xmlschemas/GpxExtensions/v3" xmlns:gpx_style="http://www.topografix.com/GPX/gpx_style/0/2" version="1.1" creator="https://gpx.studio">
+<trk>
+    <name>First</name>
+    <type>Cycling</type>
+    <trkseg>
+    <trkpt lat="49.22054736315102" lon="16.55428290367127">
+        <ele>215.4</ele>
+    </trkpt>
+    <trkpt lat="49.22032312169832" lon="16.55250728130341">
+        <ele>219.1</ele>
+    </trkpt>
+    <trkpt lat="49.22045976895466" lon="16.55101597309113">
+        <ele>215.8</ele>
+    </trkpt>
+    <trkpt lat="49.22023202331753" lon="16.549814343452457">
+        <ele>214.5</ele>
+    </trkpt>
+    <trkpt lat="49.22119555537885" lon="16.549428105354313">
+        <ele>222.1</ele>
+    </trkpt>
+    <trkpt lat="49.22195235284364" lon="16.548355221748356">
+        <ele>231.6</ele>
+    </trkpt>
+    <trkpt lat="49.2227827145053" lon="16.54875218868256">
+        <ele>234.9</ele>
+    </trkpt>
+    </trkseg>
+</trk>
+</gpx>

@@ -31,7 +31,6 @@ func init() {
 	//rootCmd.PersistentFlags().Bool("viper", true, "use Viper for configuration")
 
 	rootCmd.AddCommand(genCmd)
-	//rootCmd.AddCommand(initCmd)
 }
 
 func initConfig() {}
