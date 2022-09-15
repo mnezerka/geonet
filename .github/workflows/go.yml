@@ -21,8 +21,13 @@ jobs:
     - name: Build
       run: go build -v
 
+    - name: Test
+      run: go test -v ./...
+
     - name: Generate Cases 
       run: ./geonet cases
 
-#    - name: Test
-#      run: go test -v ./...
+    - name: Publish Cases to GH Pages
+      uses: JamesIves/github-pages-deploy-action@v4
+      with:
+        folder: public # The folder the action should deploy.

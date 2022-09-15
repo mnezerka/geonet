@@ -33,6 +33,13 @@ var casesCmd = &cobra.Command{
 		// Do Stuff Here
 		log.Infof("generating cases from dir %s", cfgCasesDir)
 
+		// ensure public directory exists
+		publicDir := filepath.Join(".", "public")
+		err := os.MkdirAll(publicDir, os.ModePerm)
+		if err != nil {
+			return err
+		}
+
 		cases, err := generateCases(cfgCasesDir)
 		if err != nil {
 			return err
@@ -40,7 +47,7 @@ var casesCmd = &cobra.Command{
 
 		log.Infof("Cases: %v", cases[0].Js)
 
-		err = cases2Html(cases)
+		err = cases2Html(cases, publicDir)
 		if err != nil {
 			return err
 		}
@@ -139,7 +146,7 @@ func generateCase(c *Case) error {
 	return nil
 }
 
-func cases2Html(cases []*Case) error {
+func cases2Html(cases []*Case, publicDir string) error {
 
 	// read all case related templates
 	t, err := template.ParseGlob("cases/tpl*.html")
@@ -149,7 +156,7 @@ func cases2Html(cases []*Case) error {
 	}
 
 	// create output file
-	f, err := os.Create("cases.html")
+	f, err := os.Create(publicDir + "/index.html")
 	if err != nil {
 		log.WithError(err)
 		return err
