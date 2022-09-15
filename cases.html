@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <title>GeoNet Cases</title>
+    
+    <link rel="shortcut icon" type="image/x-icon" href="docs/images/favicon.ico" />
+
+    <!-- leaflet -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.8.0/dist/leaflet.css" integrity="sha512-hoalWLoI8r4UszCkZ5kL8vayOGVae1oxXe/2A4AO6J9+580uKHDO3JdHb7NzwwzK5xr/Fs0W40kiNHxM9vyTtQ==" crossorigin=""/>
+    <script src="https://unpkg.com/leaflet@1.8.0/dist/leaflet.js" integrity="sha512-BB3hKbKWOc9Ez/TAwyWxNXeoV9c1v6FIeYiBieIWkpLjauysF18NzgR1MBNBXf8/KABdlkX68nAhlwcDFLGPCQ==" crossorigin=""></script>
+
+    <!-- leaflet fullscreen icon plugin -->
+    <script src='https://api.mapbox.com/mapbox.js/plugins/leaflet-fullscreen/v1.0.1/Leaflet.fullscreen.min.js'></script>
+    <link href='https://api.mapbox.com/mapbox.js/plugins/leaflet-fullscreen/v1.0.1/leaflet.fullscreen.css' rel='stylesheet' />
+
+    <style>
+        html, body {
+            height: 100%;
+            width: 100%;
+            margin: 0px;
+        }
+        body {
+            padding: 20px;
+        }
+        .leaflet-container {
+            height: 100%;
+            width: 100%;
+            max-width: 100%;
+            max-height: 100%;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h1>Cases</h1>
+
+
+
+<h2>Komin</h2>
+
+<p>
+    This is description of the Komin case, which simulates several crossroads.
+</p>
+
+Files:
+
+t1.gpx
+
+t2.gpx
+
+t3.gpx
+
+t4.gpx
+
+
+<div id="map0" style="width: 100%; height: 400px;"></div>
+<script>
+    var map0 = L.map( 'map0', {fullscreenControl: true})
+            .setView([51.505, -0.09], 13);
+
+    var tiles = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+    }).addTo(map0);
+
+    var bounds0 = null;
+
+    // begin of generated stuff
+
+
+var circle = L.circle([49.220547, 16.554283], {radius:1}).addTo(map0);
+var circle = L.circle([49.220323, 16.552507], {radius:1}).addTo(map0);
+var circle = L.circle([49.220460, 16.551016], {radius:1}).addTo(map0);
+var circle = L.circle([49.220232, 16.549814], {radius:1}).addTo(map0);
+var circle = L.circle([49.221196, 16.549428], {radius:1}).addTo(map0);
+var circle = L.circle([49.221952, 16.548355], {radius:1}).addTo(map0);
+var circle = L.circle([49.222783, 16.548752], {radius:1}).addTo(map0);
+var polyline = L.polyline([
+[49.220547, 16.554283],
+[49.220323, 16.552507],
+[49.220460, 16.551016],
+[49.220232, 16.549814],
+[49.221196, 16.549428],
+[49.221952, 16.548355],
+[49.222783, 16.548752],
+]
+, {color: 'blue', weight: '2',dashArray: '2 4', opacity: '1'}).addTo(map0);
+if (bounds0 === null) { bounds0 = polyline.getBounds() } else { bounds0.extend(polyline.getBounds()); };
+
+
+var circle = L.circle([49.222460, 16.553371], {radius:1}).addTo(map0);
+var circle = L.circle([49.221627, 16.552883], {radius:1}).addTo(map0);
+var circle = L.circle([49.221525, 16.549841], {radius:1}).addTo(map0);
+var circle = L.circle([49.221213, 16.549444], {radius:1}).addTo(map0);
+var circle = L.circle([49.220246, 16.549830], {radius:1}).addTo(map0);
+var circle = L.circle([49.220358, 16.550324], {radius:1}).addTo(map0);
+var circle = L.circle([49.218862, 16.551526], {radius:1}).addTo(map0);
+var polyline = L.polyline([
+[49.222460, 16.553371],
+[49.221627, 16.552883],
+[49.221525, 16.549841],
+[49.221213, 16.549444],
+[49.220246, 16.549830],
+[49.220358, 16.550324],
+[49.218862, 16.551526],
+]
+, {color: 'blue', weight: '2',dashArray: '2 4', opacity: '1'}).addTo(map0);
+if (bounds0 === null) { bounds0 = polyline.getBounds() } else { bounds0.extend(polyline.getBounds()); };
+
+
+var circle = L.circle([49.219563, 16.548264], {radius:1}).addTo(map0);
+var circle = L.circle([49.219705, 16.548602], {radius:1}).addTo(map0);
+var circle = L.circle([49.219847, 16.548940], {radius:1}).addTo(map0);
+var circle = L.circle([49.220027, 16.549329], {radius:1}).addTo(map0);
+var circle = L.circle([49.220207, 16.549718], {radius:1}).addTo(map0);
+var circle = L.circle([49.220596, 16.549608], {radius:1}).addTo(map0);
+var circle = L.circle([49.220985, 16.549498], {radius:1}).addTo(map0);
+var circle = L.circle([49.221110, 16.549476], {radius:1}).addTo(map0);
+var circle = L.circle([49.221234, 16.549455], {radius:1}).addTo(map0);
+var circle = L.circle([49.221350, 16.549568], {radius:1}).addTo(map0);
+var circle = L.circle([49.221465, 16.549680], {radius:1}).addTo(map0);
+var circle = L.circle([49.221642, 16.549653], {radius:1}).addTo(map0);
+var circle = L.circle([49.221819, 16.549627], {radius:1}).addTo(map0);
+var polyline = L.polyline([
+[49.219563, 16.548264],
+[49.219705, 16.548602],
+[49.219847, 16.548940],
+[49.220027, 16.549329],
+[49.220207, 16.549718],
+[49.220596, 16.549608],
+[49.220985, 16.549498],
+[49.221110, 16.549476],
+[49.221234, 16.549455],
+[49.221350, 16.549568],
+[49.221465, 16.549680],
+[49.221642, 16.549653],
+[49.221819, 16.549627],
+]
+, {color: 'blue', weight: '2',dashArray: '2 4', opacity: '1'}).addTo(map0);
+if (bounds0 === null) { bounds0 = polyline.getBounds() } else { bounds0.extend(polyline.getBounds()); };
+
+
+var circle = L.circle([49.222755, 16.552706], {radius:1}).addTo(map0);
+var circle = L.circle([49.222744, 16.552261], {radius:1}).addTo(map0);
+var circle = L.circle([49.222734, 16.551815], {radius:1}).addTo(map0);
+var circle = L.circle([49.222646, 16.551633], {radius:1}).addTo(map0);
+var circle = L.circle([49.222558, 16.551450], {radius:1}).addTo(map0);
+var circle = L.circle([49.222576, 16.550898], {radius:1}).addTo(map0);
+var circle = L.circle([49.222594, 16.550345], {radius:1}).addTo(map0);
+var circle = L.circle([49.222776, 16.549868], {radius:1}).addTo(map0);
+var circle = L.circle([49.222958, 16.549391], {radius:1}).addTo(map0);
+var circle = L.circle([49.222905, 16.549122], {radius:1}).addTo(map0);
+var circle = L.circle([49.222853, 16.548854], {radius:1}).addTo(map0);
+var circle = L.circle([49.222646, 16.548693], {radius:1}).addTo(map0);
+var circle = L.circle([49.222439, 16.548532], {radius:1}).addTo(map0);
+var circle = L.circle([49.222184, 16.548463], {radius:1}).addTo(map0);
+var circle = L.circle([49.221928, 16.548393], {radius:1}).addTo(map0);
+var circle = L.circle([49.221917, 16.548248], {radius:1}).addTo(map0);
+var circle = L.circle([49.221907, 16.548103], {radius:1}).addTo(map0);
+var circle = L.circle([49.222043, 16.547776], {radius:1}).addTo(map0);
+var circle = L.circle([49.222180, 16.547449], {radius:1}).addTo(map0);
+var circle = L.circle([49.222296, 16.547170], {radius:1}).addTo(map0);
+var circle = L.circle([49.222411, 16.546891], {radius:1}).addTo(map0);
+var polyline = L.polyline([
+[49.222755, 16.552706],
+[49.222744, 16.552261],
+[49.222734, 16.551815],
+[49.222646, 16.551633],
+[49.222558, 16.551450],
+[49.222576, 16.550898],
+[49.222594, 16.550345],
+[49.222776, 16.549868],
+[49.222958, 16.549391],
+[49.222905, 16.549122],
+[49.222853, 16.548854],
+[49.222646, 16.548693],
+[49.222439, 16.548532],
+[49.222184, 16.548463],
+[49.221928, 16.548393],
+[49.221917, 16.548248],
+[49.221907, 16.548103],
+[49.222043, 16.547776],
+[49.222180, 16.547449],
+[49.222296, 16.547170],
+[49.222411, 16.546891],
+]
+, {color: 'blue', weight: '2',dashArray: '2 4', opacity: '1'}).addTo(map0);
+if (bounds0 === null) { bounds0 = polyline.getBounds() } else { bounds0.extend(polyline.getBounds()); };
+
+
+var hullcircle71 = L.circle([49.222776, 16.549868], {radius: 1.5, color: 'red', weight: '3'}).addTo(map0).bindTooltip('hull 71');
+var hullcircle4 = L.circle([49.220460, 16.551016], {radius: 1.5, color: 'red', weight: '3'}).addTo(map0).bindTooltip('hull 4');
+var hullcircle15 = L.circle([49.221627, 16.552883], {radius: 1.5, color: 'red', weight: '3'}).addTo(map0).bindTooltip('hull 15');
+var hullcircle28 = L.circle([49.219563, 16.548264], {radius: 1.5, color: 'red', weight: '3'}).addTo(map0).bindTooltip('hull 28');
+var hullcircle50 = L.circle([49.221445, 16.549696], {radius: 1.5, color: 'red', weight: '3'}).addTo(map0).bindTooltip('hull 50');
+var hullcircle61 = L.circle([49.222734, 16.551815], {radius: 1.5, color: 'red', weight: '3'}).addTo(map0).bindTooltip('hull 61');
+var hullcircle79 = L.circle([49.222642, 16.548702], {radius: 1.5, color: 'red', weight: '3'}).addTo(map0).bindTooltip('hull 79');
+var hullcircle100 = L.circle([49.222411, 16.546891], {radius: 1.5, color: 'red', weight: '3'}).addTo(map0).bindTooltip('hull 100');
+var rect8 = L.rectangle([[49.221234, 16.549476], [49.221110, 16.549428]], {color: 'red', weight: '5'}).addTo(map0).bindTooltip('hull 8');
+var hullcircle53 = L.circle([49.221558, 16.549700], {radius: 1.5, color: 'red', weight: '3'}).addTo(map0).bindTooltip('hull 53');
+var hullcircle82 = L.circle([49.222426, 16.548559], {radius: 1.5, color: 'red', weight: '3'}).addTo(map0).bindTooltip('hull 82');
+var rect10 = L.rectangle([[49.221952, 16.548393], [49.221917, 16.548248]], {color: 'red', weight: '5'}).addTo(map0).bindTooltip('hull 10');
+var hullcircle26 = L.circle([49.218862, 16.551526], {radius: 1.5, color: 'red', weight: '3'}).addTo(map0).bindTooltip('hull 26');
+var hullcircle47 = L.circle([49.221330, 16.549586], {radius: 1.5, color: 'red', weight: '3'}).addTo(map0).bindTooltip('hull 47');
+var hullcircle75 = L.circle([49.222905, 16.549122], {radius: 1.5, color: 'red', weight: '3'}).addTo(map0).bindTooltip('hull 75');
+var hullcircle2 = L.circle([49.220323, 16.552507], {radius: 1.5, color: 'red', weight: '3'}).addTo(map0).bindTooltip('hull 2');
+var hullcircle17 = L.circle([49.221525, 16.549841], {radius: 1.5, color: 'red', weight: '3'}).addTo(map0).bindTooltip('hull 17');
+var hullcircle23 = L.circle([49.220345, 16.550326], {radius: 1.5, color: 'red', weight: '3'}).addTo(map0).bindTooltip('hull 23');
+var hullcircle31 = L.circle([49.219847, 16.548940], {radius: 1.5, color: 'red', weight: '3'}).addTo(map0).bindTooltip('hull 31');
+var hullcircle63 = L.circle([49.222646, 16.551633], {radius: 1.5, color: 'red', weight: '3'}).addTo(map0).bindTooltip('hull 63');
+var hullcircle73 = L.circle([49.222958, 16.549391], {radius: 1.5, color: 'red', weight: '3'}).addTo(map0).bindTooltip('hull 73');
+var hullcircle96 = L.circle([49.222180, 16.547449], {radius: 1.5, color: 'red', weight: '3'}).addTo(map0).bindTooltip('hull 96');
+var rect6 = L.rectangle([[49.220246, 16.549830], [49.220207, 16.549718]], {color: 'red', weight: '5'}).addTo(map0).bindTooltip('hull 6');
+var hullcircle40 = L.circle([49.220986, 16.549501], {radius: 1.5, color: 'red', weight: '3'}).addTo(map0).bindTooltip('hull 40');
+var hullcircle59 = L.circle([49.222744, 16.552261], {radius: 1.5, color: 'red', weight: '3'}).addTo(map0).bindTooltip('hull 59');
+var hullcircle69 = L.circle([49.222594, 16.550345], {radius: 1.5, color: 'red', weight: '3'}).addTo(map0).bindTooltip('hull 69');
+var hullcircle29 = L.circle([49.219705, 16.548602], {radius: 1.5, color: 'red', weight: '3'}).addTo(map0).bindTooltip('hull 29');
+var hullcircle85 = L.circle([49.222185, 16.548459], {radius: 1.5, color: 'red', weight: '3'}).addTo(map0).bindTooltip('hull 85');
+var hullcircle56 = L.circle([49.221819, 16.549627], {radius: 1.5, color: 'red', weight: '3'}).addTo(map0).bindTooltip('hull 56');
+var rect12 = L.rectangle([[49.222853, 16.548854], [49.222783, 16.548752]], {color: 'red', weight: '5'}).addTo(map0).bindTooltip('hull 12');
+var hullcircle14 = L.circle([49.222460, 16.553371], {radius: 1.5, color: 'red', weight: '3'}).addTo(map0).bindTooltip('hull 14');
+var hullcircle33 = L.circle([49.220027, 16.549329], {radius: 1.5, color: 'red', weight: '3'}).addTo(map0).bindTooltip('hull 33');
+var hullcircle37 = L.circle([49.220602, 16.549625], {radius: 1.5, color: 'red', weight: '3'}).addTo(map0).bindTooltip('hull 37');
+var hullcircle58 = L.circle([49.222755, 16.552706], {radius: 1.5, color: 'red', weight: '3'}).addTo(map0).bindTooltip('hull 58');
+var hullcircle65 = L.circle([49.222558, 16.551450], {radius: 1.5, color: 'red', weight: '3'}).addTo(map0).bindTooltip('hull 65');
+var hullcircle67 = L.circle([49.222576, 16.550898], {radius: 1.5, color: 'red', weight: '3'}).addTo(map0).bindTooltip('hull 67');
+var hullcircle1 = L.circle([49.220547, 16.554283], {radius: 1.5, color: 'red', weight: '3'}).addTo(map0).bindTooltip('hull 1');
+var hullcircle94 = L.circle([49.222043, 16.547776], {radius: 1.5, color: 'red', weight: '3'}).addTo(map0).bindTooltip('hull 94');
+var hullcircle98 = L.circle([49.222296, 16.547170], {radius: 1.5, color: 'red', weight: '3'}).addTo(map0).bindTooltip('hull 98');
+var hullcircle92 = L.circle([49.221907, 16.548103], {radius: 1.5, color: 'red', weight: '3'}).addTo(map0).bindTooltip('hull 92');
+
+
+var polyline86 = L.polyline([[49.222185, 16.548459], [49.222426, 16.548559]], {color: 'green', weight: '2'}).addTo(map0);
+var polyline93 = L.polyline([[49.221935, 16.548320], [49.221907, 16.548103]], {color: 'green', weight: '2'}).addTo(map0);
+var polyline5 = L.polyline([[49.220323, 16.552507], [49.220460, 16.551016]], {color: 'green', weight: '2'}).addTo(map0);
+var polyline16 = L.polyline([[49.222460, 16.553371], [49.221627, 16.552883]], {color: 'green', weight: '2'}).addTo(map0);
+var polyline51 = L.polyline([[49.221445, 16.549696], [49.221330, 16.549586]], {color: 'green', weight: '2'}).addTo(map0);
+var polyline57 = L.polyline([[49.221558, 16.549700], [49.221819, 16.549627]], {color: 'green', weight: '2'}).addTo(map0);
+var polyline70 = L.polyline([[49.222576, 16.550898], [49.222594, 16.550345]], {color: 'green', weight: '2'}).addTo(map0);
+var polyline78 = L.polyline([[49.222905, 16.549122], [49.222818, 16.548803]], {color: 'green', weight: '2'}).addTo(map0);
+var polyline95 = L.polyline([[49.221907, 16.548103], [49.222043, 16.547776]], {color: 'green', weight: '2'}).addTo(map0);
+var polyline46 = L.polyline([[49.221172, 16.549452], [49.221172, 16.549452]], {color: 'green', weight: '2'}).addTo(map0);
+var polyline48 = L.polyline([[49.221330, 16.549586], [49.221172, 16.549452]], {color: 'green', weight: '2'}).addTo(map0);
+var polyline60 = L.polyline([[49.222755, 16.552706], [49.222744, 16.552261]], {color: 'green', weight: '2'}).addTo(map0);
+var polyline27 = L.polyline([[49.220345, 16.550326], [49.218862, 16.551526]], {color: 'green', weight: '2'}).addTo(map0);
+var polyline30 = L.polyline([[49.219563, 16.548264], [49.219705, 16.548602]], {color: 'green', weight: '2'}).addTo(map0);
+var polyline36 = L.polyline([[49.220027, 16.549329], [49.220227, 16.549774]], {color: 'green', weight: '2'}).addTo(map0);
+var polyline66 = L.polyline([[49.222646, 16.551633], [49.222558, 16.551450]], {color: 'green', weight: '2'}).addTo(map0);
+var polyline91 = L.polyline([[49.221935, 16.548320], [49.221935, 16.548320]], {color: 'green', weight: '2'}).addTo(map0);
+var polyline20 = L.polyline([[49.221525, 16.549841], [49.221558, 16.549700]], {color: 'green', weight: '2'}).addTo(map0);
+var polyline32 = L.polyline([[49.219705, 16.548602], [49.219847, 16.548940]], {color: 'green', weight: '2'}).addTo(map0);
+var polyline54 = L.polyline([[49.221558, 16.549700], [49.221445, 16.549696]], {color: 'green', weight: '2'}).addTo(map0);
+var polyline74 = L.polyline([[49.222776, 16.549868], [49.222958, 16.549391]], {color: 'green', weight: '2'}).addTo(map0);
+var polyline99 = L.polyline([[49.222180, 16.547449], [49.222296, 16.547170]], {color: 'green', weight: '2'}).addTo(map0);
+var polyline7 = L.polyline([[49.220460, 16.551016], [49.220345, 16.550326]], {color: 'green', weight: '2'}).addTo(map0);
+var polyline11 = L.polyline([[49.221172, 16.549452], [49.221935, 16.548320]], {color: 'green', weight: '2'}).addTo(map0);
+var polyline97 = L.polyline([[49.222043, 16.547776], [49.222180, 16.547449]], {color: 'green', weight: '2'}).addTo(map0);
+var polyline101 = L.polyline([[49.222296, 16.547170], [49.222411, 16.546891]], {color: 'green', weight: '2'}).addTo(map0);
+var polyline3 = L.polyline([[49.220547, 16.554283], [49.220323, 16.552507]], {color: 'green', weight: '2'}).addTo(map0);
+var polyline13 = L.polyline([[49.221935, 16.548320], [49.222185, 16.548459]], {color: 'green', weight: '2'}).addTo(map0);
+var polyline41 = L.polyline([[49.220986, 16.549501], [49.221172, 16.549452]], {color: 'green', weight: '2'}).addTo(map0);
+var polyline64 = L.polyline([[49.222734, 16.551815], [49.222646, 16.551633]], {color: 'green', weight: '2'}).addTo(map0);
+var polyline76 = L.polyline([[49.222958, 16.549391], [49.222905, 16.549122]], {color: 'green', weight: '2'}).addTo(map0);
+var polyline83 = L.polyline([[49.222426, 16.548559], [49.222642, 16.548702]], {color: 'green', weight: '2'}).addTo(map0);
+var polyline34 = L.polyline([[49.219847, 16.548940], [49.220027, 16.549329]], {color: 'green', weight: '2'}).addTo(map0);
+var polyline62 = L.polyline([[49.222744, 16.552261], [49.222734, 16.551815]], {color: 'green', weight: '2'}).addTo(map0);
+var polyline68 = L.polyline([[49.222558, 16.551450], [49.222576, 16.550898]], {color: 'green', weight: '2'}).addTo(map0);
+var polyline72 = L.polyline([[49.222594, 16.550345], [49.222776, 16.549868]], {color: 'green', weight: '2'}).addTo(map0);
+var polyline80 = L.polyline([[49.222642, 16.548702], [49.222818, 16.548803]], {color: 'green', weight: '2'}).addTo(map0);
+var polyline9 = L.polyline([[49.220227, 16.549774], [49.220602, 16.549625]], {color: 'green', weight: '2'}).addTo(map0);
+var polyline18 = L.polyline([[49.221627, 16.552883], [49.221525, 16.549841]], {color: 'green', weight: '2'}).addTo(map0);
+var polyline24 = L.polyline([[49.220345, 16.550326], [49.220227, 16.549774]], {color: 'green', weight: '2'}).addTo(map0);
+var polyline38 = L.polyline([[49.220602, 16.549625], [49.220986, 16.549501]], {color: 'green', weight: '2'}).addTo(map0);
+
+
+
+    // end of generated stuff
+
+    if (bounds0 != null) {
+        map0.fitBounds(bounds0)
+    }
+
+</script>
+
+
+<h2>Smelcovna</h2>
+
+<p>
+    Case where one track does 180 degree turn where legs are close to each other (10m)
+</p>
+
+Files:
+
+smelcovna.gpx
+
+
+<div id="map1" style="width: 100%; height: 400px;"></div>
+<script>
+    var map1 = L.map( 'map1', {fullscreenControl: true})
+            .setView([51.505, -0.09], 13);
+
+    var tiles = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+    }).addTo(map1);
+
+    var bounds1 = null;
+
+    // begin of generated stuff
+
+
+var circle = L.circle([49.266658, 16.353211], {radius:1}).addTo(map1);
+var circle = L.circle([49.266646, 16.353147], {radius:1}).addTo(map1);
+var circle = L.circle([49.266647, 16.353108], {radius:1}).addTo(map1);
+var circle = L.circle([49.266634, 16.353077], {radius:1}).addTo(map1);
+var circle = L.circle([49.266710, 16.353022], {radius:1}).addTo(map1);
+var circle = L.circle([49.266732, 16.352979], {radius:1}).addTo(map1);
+var circle = L.circle([49.266717, 16.352850], {radius:1}).addTo(map1);
+var circle = L.circle([49.266720, 16.352811], {radius:1}).addTo(map1);
+var circle = L.circle([49.266714, 16.352767], {radius:1}).addTo(map1);
+var circle = L.circle([49.266712, 16.352744], {radius:1}).addTo(map1);
+var circle = L.circle([49.266703, 16.352694], {radius:1}).addTo(map1);
+var circle = L.circle([49.266695, 16.352671], {radius:1}).addTo(map1);
+var circle = L.circle([49.266664, 16.352581], {radius:1}).addTo(map1);
+var circle = L.circle([49.266655, 16.352561], {radius:1}).addTo(map1);
+var circle = L.circle([49.266664, 16.352538], {radius:1}).addTo(map1);
+var circle = L.circle([49.266669, 16.352518], {radius:1}).addTo(map1);
+var circle = L.circle([49.266672, 16.352504], {radius:1}).addTo(map1);
+var circle = L.circle([49.266674, 16.352507], {radius:1}).addTo(map1);
+var circle = L.circle([49.266709, 16.352518], {radius:1}).addTo(map1);
+var circle = L.circle([49.266747, 16.352539], {radius:1}).addTo(map1);
+var circle = L.circle([49.266751, 16.352544], {radius:1}).addTo(map1);
+var circle = L.circle([49.266737, 16.352479], {radius:1}).addTo(map1);
+var circle = L.circle([49.266732, 16.352461], {radius:1}).addTo(map1);
+var circle = L.circle([49.266726, 16.352433], {radius:1}).addTo(map1);
+var circle = L.circle([49.266705, 16.352361], {radius:1}).addTo(map1);
+var circle = L.circle([49.266702, 16.352342], {radius:1}).addTo(map1);
+var circle = L.circle([49.266689, 16.352276], {radius:1}).addTo(map1);
+var circle = L.circle([49.266677, 16.352234], {radius:1}).addTo(map1);
+var circle = L.circle([49.266675, 16.352207], {radius:1}).addTo(map1);
+var circle = L.circle([49.266650, 16.352119], {radius:1}).addTo(map1);
+var circle = L.circle([49.266618, 16.352046], {radius:1}).addTo(map1);
+var circle = L.circle([49.266600, 16.352033], {radius:1}).addTo(map1);
+var circle = L.circle([49.266601, 16.352051], {radius:1}).addTo(map1);
+var circle = L.circle([49.266643, 16.352163], {radius:1}).addTo(map1);
+var circle = L.circle([49.266687, 16.352305], {radius:1}).addTo(map1);
+var circle = L.circle([49.266692, 16.352411], {radius:1}).addTo(map1);
+var circle = L.circle([49.266677, 16.352721], {radius:1}).addTo(map1);
+var circle = L.circle([49.266659, 16.352884], {radius:1}).addTo(map1);
+var circle = L.circle([49.266611, 16.353099], {radius:1}).addTo(map1);
+var polyline = L.polyline([
+[49.266658, 16.353211],
+[49.266646, 16.353147],
+[49.266647, 16.353108],
+[49.266634, 16.353077],
+[49.266710, 16.353022],
+[49.266732, 16.352979],
+[49.266717, 16.352850],
+[49.266720, 16.352811],
+[49.266714, 16.352767],
+[49.266712, 16.352744],
+[49.266703, 16.352694],
+[49.266695, 16.352671],
+[49.266664, 16.352581],
+[49.266655, 16.352561],
+[49.266664, 16.352538],
+[49.266669, 16.352518],
+[49.266672, 16.352504],
+[49.266674, 16.352507],
+[49.266709, 16.352518],
+[49.266747, 16.352539],
+[49.266751, 16.352544],
+[49.266737, 16.352479],
+[49.266732, 16.352461],
+[49.266726, 16.352433],
+[49.266705, 16.352361],
+[49.266702, 16.352342],
+[49.266689, 16.352276],
+[49.266677, 16.352234],
+[49.266675, 16.352207],
+[49.266650, 16.352119],
+[49.266618, 16.352046],
+[49.266600, 16.352033],
+[49.266601, 16.352051],
+[49.266643, 16.352163],
+[49.266687, 16.352305],
+[49.266692, 16.352411],
+[49.266677, 16.352721],
+[49.266659, 16.352884],
+[49.266611, 16.353099],
+]
+, {color: 'blue', weight: '2',dashArray: '2 4', opacity: '1'}).addTo(map1);
+if (bounds1 === null) { bounds1 = polyline.getBounds() } else { bounds1.extend(polyline.getBounds()); };
+
+
+var rect44 = L.rectangle([[49.266732, 16.352461], [49.266692, 16.352342]], {color: 'red', weight: '5'}).addTo(map1).bindTooltip('hull 44');
+var rect60 = L.rectangle([[49.266643, 16.352163], [49.266600, 16.352033]], {color: 'red', weight: '5'}).addTo(map1).bindTooltip('hull 60');
+var hullcircle68 = L.circle([49.266691, 16.352304], {radius: 1.5, color: 'red', weight: '3'}).addTo(map1).bindTooltip('hull 68');
+var rect52 = L.rectangle([[49.266689, 16.352276], [49.266650, 16.352119]], {color: 'red', weight: '5'}).addTo(map1).bindTooltip('hull 52');
+var hullcircle75 = L.circle([49.266687, 16.352881], {radius: 1.5, color: 'red', weight: '3'}).addTo(map1).bindTooltip('hull 75');
+var rect1 = L.rectangle([[49.266658, 16.353211], [49.266611, 16.353077]], {color: 'red', weight: '5'}).addTo(map1).bindTooltip('hull 1');
+var rect8 = L.rectangle([[49.266732, 16.353022], [49.266710, 16.352850]], {color: 'red', weight: '5'}).addTo(map1).bindTooltip('hull 8');
+var rect14 = L.rectangle([[49.266720, 16.352811], [49.266677, 16.352671]], {color: 'red', weight: '5'}).addTo(map1).bindTooltip('hull 14');
+var rect24 = L.rectangle([[49.266751, 16.352581], [49.266655, 16.352479]], {color: 'red', weight: '5'}).addTo(map1).bindTooltip('hull 24');
+
+
+var polyline45 = L.polyline([[49.266703, 16.352530], [49.266712, 16.352401]], {color: 'green', weight: '2'}).addTo(map1);
+var polyline69 = L.polyline([[49.266691, 16.352304], [49.266669, 16.352197]], {color: 'green', weight: '2'}).addTo(map1);
+var polyline70 = L.polyline([[49.266621, 16.352098], [49.266691, 16.352304]], {color: 'green', weight: '2'}).addTo(map1);
+var polyline25 = L.polyline([[49.266699, 16.352741], [49.266703, 16.352530]], {color: 'green', weight: '2'}).addTo(map1);
+var polyline17 = L.polyline([[49.266699, 16.352741], [49.266699, 16.352741]], {color: 'green', weight: '2'}).addTo(map1);
+var polyline53 = L.polyline([[49.266712, 16.352401], [49.266691, 16.352304]], {color: 'green', weight: '2'}).addTo(map1);
+var polyline74 = L.polyline([[49.266712, 16.352401], [49.266699, 16.352741]], {color: 'green', weight: '2'}).addTo(map1);
+var polyline76 = L.polyline([[49.266687, 16.352881], [49.266699, 16.352741]], {color: 'green', weight: '2'}).addTo(map1);
+var polyline79 = L.polyline([[49.266687, 16.352881], [49.266634, 16.353144]], {color: 'green', weight: '2'}).addTo(map1);
+var polyline3 = L.polyline([[49.266634, 16.353144], [49.266634, 16.353144]], {color: 'green', weight: '2'}).addTo(map1);
+var polyline55 = L.polyline([[49.266669, 16.352197], [49.266669, 16.352197]], {color: 'green', weight: '2'}).addTo(map1);
+var polyline11 = L.polyline([[49.266721, 16.352936], [49.266721, 16.352936]], {color: 'green', weight: '2'}).addTo(map1);
+var polyline15 = L.polyline([[49.266721, 16.352936], [49.266687, 16.352881]], {color: 'green', weight: '2'}).addTo(map1);
+var polyline27 = L.polyline([[49.266703, 16.352530], [49.266703, 16.352530]], {color: 'green', weight: '2'}).addTo(map1);
+var polyline47 = L.polyline([[49.266712, 16.352401], [49.266712, 16.352401]], {color: 'green', weight: '2'}).addTo(map1);
+var polyline61 = L.polyline([[49.266669, 16.352197], [49.266621, 16.352098]], {color: 'green', weight: '2'}).addTo(map1);
+var polyline63 = L.polyline([[49.266621, 16.352098], [49.266621, 16.352098]], {color: 'green', weight: '2'}).addTo(map1);
+var polyline9 = L.polyline([[49.266634, 16.353144], [49.266721, 16.352936]], {color: 'green', weight: '2'}).addTo(map1);
+
+
+
+    // end of generated stuff
+
+    if (bounds1 != null) {
+        map1.fitBounds(bounds1)
+    }
+
+</script>
+
+
+
+</body>
+</html>
+
