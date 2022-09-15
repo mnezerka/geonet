@@ -125,14 +125,14 @@ func generateCase(c *Case) error {
 		store.AddGpx(gpx, 0.0002)
 
 		// visualize add polyline
-		c.Js = append(c.Js, GpxToPolyline(gpx, file_ix+1))
+		c.Js = append(c.Js, GpxToPolyline(gpx, file_ix+1, c.Seq))
 	}
 
 	// visualize hulls
-	c.Js = append(c.Js, StoreHullsToPolygons(store))
+	c.Js = append(c.Js, StoreHullsToPolygons(store, c.Seq))
 
 	// visualize lines
-	c.Js = append(c.Js, StoreLinesToPolylines(store))
+	c.Js = append(c.Js, StoreLinesToPolylines(store, c.Seq))
 
 	log.Infof("js items: %d", len(c.Js))
 

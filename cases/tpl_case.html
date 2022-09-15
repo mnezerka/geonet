@@ -18,7 +18,7 @@ Files:
         attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
     }).addTo(map{{ .Seq }});
 
-    var bounds = null;
+    var bounds{{ .Seq }} = null;
 
     // begin of generated stuff
 
@@ -28,8 +28,8 @@ Files:
 
     // end of generated stuff
 
-    if (bounds != null) {
-        map{{ .Seq }}.fitBounds(bounds)
+    if (bounds{{ .Seq }} != null) {
+        map{{ .Seq }}.fitBounds(bounds{{ .Seq }})
     }
 
 </script>
