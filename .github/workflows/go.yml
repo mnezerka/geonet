@@ -1,15 +1,14 @@
 name: Go
 
-on:
-  push:
-    branches: [ "master" ]
-  pull_request:
-    branches: [ "master" ]
+on: [push]
 
 jobs:
 
   build:
     runs-on: ubuntu-latest
+    env:
+      DEPLOY: ${{ github.ref == 'refs/heads/master' }}
+
     steps:
     - uses: actions/checkout@v3
 
@@ -25,9 +24,11 @@ jobs:
       run: go test -v ./...
 
     - name: Generate Cases 
+      if: ${{ env.DEPLOY }}
       run: ./geonet cases
 
     - name: Publish Cases to GH Pages
+      if: ${{ env.DEPLOY }}
       uses: JamesIves/github-pages-deploy-action@v4
       with:
         folder: public # The folder the action should deploy.
