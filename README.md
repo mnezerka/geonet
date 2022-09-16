@@ -1,8 +1,29 @@
 # GeoNet
 
+GeoNet is a library for generating net from multiple gps tracks.
 
+[![Go](https://github.com/mnezerka/geonet/actions/workflows/go.yml/badge.svg?branch=master)](https://github.com/mnezerka/geonet/actions/workflows/go.yml)
 
-## FDH
+Current state of the algorithm could be checkd on [Cases page](https://mnezerka.github.io/geonet/)
+
+## Algorithm
+
+- tracks are added one by one
+- for each track
+  - if the track is first, store all points and continue with next track
+  - go through track points one by one
+    - create new hull from point (PH)
+    - look for existing hull (H) which is close to the point
+    - if such hull exist, try to add it (merge hulls H and PH). If size of
+      joined hull is under predefined treshold, add point to H and update
+      metadata of H (point, track, etc.)
+    - if such hull doesn't exist, register new hull
+
+TODO: document line splitting part of algorithm
+
+## Data Structures
+
+### FDH
 
 FDH = Fixed Directional Hull, alternative, and I think more frequent term is
 k-DOP. (Not sure for what that stands for anymore)
