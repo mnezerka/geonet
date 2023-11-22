@@ -38,8 +38,8 @@ func GpxToPolyline(gpx *gpx.Gpx, index int, mapId int) string {
 	}
 
 	if len(points) > 0 {
-		result += fmt.Sprintf("var polyline = L.polyline(%s, {color: 'blue', weight: '2',dashArray: '2 4', opacity: '1'}).addTo(map%d);\n", points, mapId)
-		result += fmt.Sprintf("if (bounds%d === null) { bounds%d = polyline.getBounds() } else { bounds%d.extend(polyline.getBounds()); };\n", mapId, mapId, mapId)
+		result += fmt.Sprintf("var polyline = L.polyline(%s, {color: 'blue', weight: '2',dashArray: '2 4', opacity: '1'}).addTo(map%d)\n", points, mapId)
+		result += fmt.Sprintf("if (bounds%d === null) { bounds%d = polyline.getBounds() } else { bounds%d.extend(polyline.getBounds()) }\n", mapId, mapId, mapId)
 	}
 	return result
 }
@@ -51,10 +51,32 @@ func StoreHullsToPolygons(s *store.Store, mapId int) string {
 		r := h.BoundRect()
 		rc := r.Center()
 		if h.Size() == 0 {
-			result += fmt.Sprintf("var hullcircle%d = L.circle([%f, %f], {radius: 1.5, color: 'red', weight: '3'}).addTo(map%d).bindTooltip('hull %d');\n", id, rc.X, rc.Y, mapId, id)
+			result += fmt.Sprintf("var hullcircle%d = L.circle([%f, %f], {radius: 1.5, color: 'red', weight: '3'}).addTo(map%d).bindTooltip('hull %d')\n", id, rc.X, rc.Y, mapId, id)
 		} else {
-			result += fmt.Sprintf("var rect%d = L.rectangle([[%f, %f], [%f, %f]], {color: 'red', weight: '5'}).addTo(map%d).bindTooltip('hull %d');\n", id, r.Corner1.X, r.Corner1.Y, r.Corner2.X, r.Corner2.Y, mapId, id)
+			result += fmt.Sprintf("var rect%d = L.rectangle([[%f, %f], [%f, %f]], {color: 'red', weight: '5'}).addTo(map%d).bindTooltip('hull %d')\n", id, r.Corner1.X, r.Corner1.Y, r.Corner2.X, r.Corner2.Y, mapId, id)
 		}
+
+		result += fmt.Sprintf("if (bounds%d === null) { bounds%d = L.latLngBounds(L.latLng(%f, %f), L.latLng(%f, %f)) } else { bounds%d.extend(L.latLng(%f, %f)) }\n", mapId, mapId, rc.X, rc.Y, rc.X, rc.Y, mapId, rc.X, rc.Y)
+
+	}
+
+	return result
+}
+
+func StoreHullsToHeatCircles(s *store.Store, mapId int) string {
+	result := ""
+
+	for id, h := range s.Hulls {
+		r := h.BoundRect()
+		rc := r.Center()
+		spotRecords := h.GetRecords()
+
+		//diameter := 1.5 * float64(len(*spotRecords))
+		diameter := 5 * float64(len(*spotRecords))
+		if h.Size() == 0 {
+			result += fmt.Sprintf("var hullcircle%d = L.circle([%f, %f], {radius: %f, color: 'red', weight: '3'}).addTo(map%d).bindTooltip('hull %d')\n", id, rc.X, rc.Y, diameter, mapId, id)
+		}
+		result += fmt.Sprintf("if (bounds%d === null) { bounds%d = L.latLngBounds(L.latLng(%f, %f), L.latLng(%f, %f)) } else { bounds%d.extend(L.latLng(%f, %f)) }\n", mapId, mapId, rc.X, rc.Y, rc.X, rc.Y, mapId, rc.X, rc.Y)
 	}
 
 	return result
@@ -69,7 +91,8 @@ func StoreLinesToPolylines(s *store.Store, mapId int) string {
 		//log.Infof("ha %v hb %v", )
 		ca := ha.BoundRect().Center()
 		cb := hb.BoundRect().Center()
-		result += fmt.Sprintf("var polyline%d = L.polyline([[%f, %f], [%f, %f]], {color: 'green', weight: '2'}).addTo(map%d);\n", line.Id, ca.X, ca.Y, cb.X, cb.Y, mapId)
+		result += fmt.Sprintf("var polyline%d = L.polyline([[%f, %f], [%f, %f]], {color: 'green', weight: '2'}).addTo(map%d)\n", line.Id, ca.X, ca.Y, cb.X, cb.Y, mapId)
+		result += fmt.Sprintf("if (bounds%d === null) { bounds%d = polyline%d.getBounds() } else { bounds%d.extend(polyline%d.getBounds()) };\n", mapId, mapId, line.Id, mapId, line.Id)
 	}
 
 	return result

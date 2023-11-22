@@ -10,7 +10,7 @@ import (
 )
 
 var rootCmd = &cobra.Command{
-	Use: "GeoNet Utility",
+	Use: "geonet Utility",
 }
 
 func Execute() {
@@ -25,12 +25,6 @@ func init() {
 
 	log.SetHandler(text.New(os.Stderr))
 
-	//rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.cobra.yaml)")
-	//rootCmd.PersistentFlags().StringP("author", "a", "YOUR NAME", "author name for copyright attribution")
-	//rootCmd.PersistentFlags().StringVarP(&userLicense, "license", "l", "", "name of license for the project")
-	//rootCmd.PersistentFlags().Bool("viper", true, "use Viper for configuration")
-
-	rootCmd.AddCommand(genCmd)
 }
 
 func initConfig() {}

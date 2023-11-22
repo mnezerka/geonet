@@ -1,27 +1,25 @@
 package store
 
 import (
-	"github.com/apex/log"
 	"github.com/ptrv/go-gpx"
+
+	"mnezerka/geonet/auxiliary"
 )
 
 type StoreId int64
 
 type Store struct {
-	Hulls  map[StoreId]*Hull4
-	Lines  map[StoreId]*Line
-	Log    *log.Entry
-	LastId StoreId
+	Hulls        map[StoreId]*Hull4
+	Lines        map[StoreId]*Line
+	LastId       StoreId
+	LinesEnabled bool
 }
 
 func NewStore() *Store {
 	s := Store{}
+	s.LinesEnabled = true
 
-	s.Log = log.WithFields(log.Fields{
-		"comp": "store",
-	})
-
-	s.Log.Info("creating store")
+	auxiliary.Debugf("creating store")
 
 	s.LastId = 0
 	s.Hulls = make(map[StoreId]*Hull4)
@@ -35,8 +33,8 @@ func (s *Store) GetId() StoreId {
 	return s.LastId
 }
 
-func (s *Store) AddPoint(p gpx.Wpt, sizeTreshold float64) *Hull4 {
-	s.Log.Infof("add point [%f, %f]", p.Lat, p.Lon)
+func (s *Store) AddPoint(p gpx.Wpt, sizeTreshold float64, spotRecord *SpotRecord) *Hull4 {
+	auxiliary.Debugf("add point [%f, %f] %v", p.Lat, p.Lon, spotRecord)
 
 	new := NewHull4FromVector(Vector{p.Lat, p.Lon}, s.GetId())
 
@@ -49,7 +47,7 @@ func (s *Store) AddPoint(p gpx.Wpt, sizeTreshold float64) *Hull4 {
 
 		// if joined size is under threshold
 		if joined.Size() < sizeTreshold {
-			s.Log.Infof("  adding to existing hull (%d), size %f ", joined.Id, joined.Size())
+			auxiliary.Debugf("  adding to existing hull (%d), size %f ", joined.Id, joined.Size())
 			s.Hulls[id] = &joined
 			result = &joined
 			break
@@ -58,73 +56,85 @@ func (s *Store) AddPoint(p gpx.Wpt, sizeTreshold float64) *Hull4 {
 
 	// no existing hull was close enough -> create new one
 	if result == nil {
-		s.Log.Infof("  registering new hull (%d)", new.Id)
+		auxiliary.Debugf("  registering new hull (%d)", new.Id)
 		s.Hulls[new.Id] = new
 		result = new
 
-		// try to find a line, which is close by
-		lineInRange := s.LineInHullRange(new, sizeTreshold)
-		if lineInRange != nil {
-			s.Log.Infof("  close to line %s", lineInRange.Str())
+		if s.LinesEnabled {
 
-			//         lineInRange
-			//   a -------------------------- b
-			//            |
-			//            |
-			//            x new center
-			//            |
-			//            |
-			//            new
+			// try to find a line, which is close by
+			lineInRange := s.LineInHullRange(new, sizeTreshold)
+			if lineInRange != nil {
+				auxiliary.Debugf("  close to line %s", lineInRange.Str())
 
-			// move new hull to the middle distance between line and it's position
-			ha := s.Hulls[lineInRange.A]
-			hb := s.Hulls[lineInRange.B]
-			ca := ha.BoundRect().Center()
-			cb := hb.BoundRect().Center()
+				//         lineInRange
+				//   a -------------------------- b
+				//            |
+				//            |
+				//            x new center
+				//            |
+				//            |
+				//            new
 
-			// center of new hull
-			cnew := new.BoundRect().Center()
+				// move new hull to the middle distance between line and it's position
+				ha := s.Hulls[lineInRange.A]
+				hb := s.Hulls[lineInRange.B]
+				ca := ha.BoundRect().Center()
+				cb := hb.BoundRect().Center()
 
-			s.Log.Infof("    cnew: %v", cnew)
+				// center of new hull
+				cnew := new.BoundRect().Center()
 
-			// get projection of new hull to the line
-			proj := Projection(ca, cb, cnew)
-			s.Log.Infof("    proj: %v", proj)
+				auxiliary.Debugf("    cnew: %v", cnew)
 
-			// vectror from new to projection point
-			// and shrink newproj to half length
-			move := VectorFromPoints(proj, cnew).Scalar(.5)
+				// get projection of new hull to the line
+				proj := Projection(ca, cb, cnew)
+				auxiliary.Debugf("    proj: %v", proj)
 
-			s.Log.Infof("    move: %v", move)
+				// vectror from new to projection point
+				// and shrink newproj to half length
+				move := VectorFromPoints(proj, cnew).Scalar(.5)
 
-			center := VectorFromPoint(cnew).Sub(move)
+				auxiliary.Debugf("    move: %v", move)
 
-			s.Log.Infof("    center: %v", center)
+				center := VectorFromPoint(cnew).Sub(move)
 
-			// create new hull with the same id
-			new = NewHull4FromVector(center, new.Id)
-			s.Hulls[new.Id] = new
-			result = new
+				auxiliary.Debugf("    center: %v", center)
 
-			s.Log.Infof("    new hull moved to %v", new.BoundRect().Center())
+				// create new hull with the same id
+				new = NewHull4FromVector(center, new.Id)
+				s.Hulls[new.Id] = new
+				result = new
 
-			// split line to two segments
-			// TODO: lineInRange.A.
-			s.Log.Infof("    splitting %s", lineInRange.Str())
-			newLine := &Line{new.Id, lineInRange.B, s.GetId()}
-			s.Lines[newLine.Id] = newLine
-			lineInRange.B = new.Id
+				auxiliary.Debugf("    new hull moved to %v", new.BoundRect().Center())
 
-			s.Log.Infof("      new line registered %s", newLine.Str())
-			s.Log.Infof("      existing line changed to %s", lineInRange.Str())
+				// split line to two segments
+				// TODO: lineInRange.A.
+				auxiliary.Debugf("    splitting %s", lineInRange.Str())
+				newLine := &Line{new.Id, lineInRange.B, s.GetId()}
+				s.Lines[newLine.Id] = newLine
+				lineInRange.B = new.Id
+
+				auxiliary.Debugf("      new line registered %s", newLine.Str())
+				auxiliary.Debugf("      existing line changed to %s", lineInRange.Str())
+			}
 		}
+	}
+
+	if spotRecord != nil {
+		result.AddRecord(spotRecord)
 	}
 
 	return result
 }
 
 func (s *Store) AddLine(lastHull, targetHull *Hull4) {
-	s.Log.Info("add line")
+
+	if !s.LinesEnabled {
+		return
+	}
+
+	auxiliary.Debug("add line")
 
 	newLine := &Line{lastHull.Id, targetHull.Id, s.GetId()}
 
@@ -138,30 +148,28 @@ func (s *Store) AddLine(lastHull, targetHull *Hull4) {
 	}
 
 	if line == nil {
-		s.Log.Infof("  new line registered (%d)", newLine.Id)
+		auxiliary.Debugf("  new line registered (%d)", newLine.Id)
 		s.Lines[newLine.Id] = newLine
 	} else {
-		s.Log.Infof("  updating existing line (%d)", line.Id)
+		auxiliary.Debugf("  updating existing line (%d)", line.Id)
 	}
 
 }
 
-func (s *Store) AddGpx(gpx *gpx.Gpx, sizeTreshold float64) {
-	s.Log.Info("add gpx")
+func (s *Store) AddGpx(gpx *gpx.Gpx, sizeTreshold float64, id string) {
+	auxiliary.Infof("adding gpx '%s' (%d tracks)", gpx.Metadata.Name, len(gpx.Tracks))
 
 	// tracks
 	for i := 0; i < len(gpx.Tracks); i++ {
 
-		s.Log.Infof("  track: %s", gpx.Tracks[i].Name)
-
 		// track segments
 		var lastHull *Hull4 = nil
 		for j := 0; j < len(gpx.Tracks[i].Segments); j++ {
-			s.Log.Infof("    segment with %d points", len(gpx.Tracks[i].Segments[j].Waypoints))
+			auxiliary.Infof("adding segment (%d points)", len(gpx.Tracks[i].Segments[j].Waypoints))
 
 			// segment points
 			for k := 0; k < len(gpx.Tracks[i].Segments[j].Waypoints); k++ {
-				targetHull := s.AddPoint(gpx.Tracks[i].Segments[j].Waypoints[k], sizeTreshold)
+				targetHull := s.AddPoint(gpx.Tracks[i].Segments[j].Waypoints[k], sizeTreshold, &SpotRecord{Id: id})
 
 				if lastHull != nil {
 					s.AddLine(lastHull, targetHull)
@@ -172,9 +180,8 @@ func (s *Store) AddGpx(gpx *gpx.Gpx, sizeTreshold float64) {
 		}
 	}
 
-	s.Log.Info("gpx added")
-	s.Log.Infof("  hulls: %d", len(s.Hulls))
-	s.Log.Infof("  lines: %d", len(s.Lines))
+	auxiliary.Infof("gpx added hulls: %d lines: %d", len(s.Hulls), len(s.Lines))
+
 }
 
 func (s *Store) LineInHullRange(h *Hull4, sizeTreshold float64) *Line {

@@ -6,7 +6,7 @@ require (
 	github.com/apex/log v1.9.0
 	github.com/ptrv/go-gpx v0.0.0-20151216232927-c93804873f99
 	github.com/spf13/cobra v1.5.0
-	github.com/stretchr/testify v1.8.0
+	github.com/stretchr/testify v1.8.1
 	gopkg.in/yaml.v2 v2.4.0
 )
 

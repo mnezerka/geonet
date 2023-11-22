@@ -12,18 +12,26 @@ var Hull4BoundVectors = []Vector{
 }
 
 type Hull4 struct {
-	Bounds [4]float64
 	Id     StoreId
+	Bounds [4]float64
+	Spot
+}
+
+func NewHull4(id StoreId) *Hull4 {
+	h := Hull4{
+		Id:   id,
+		Spot: *NewSpot(),
+	}
+
+	return &h
 }
 
 func NewHull4FromVector(v Vector, id StoreId) *Hull4 {
-	h := new(Hull4)
+	h := NewHull4(id)
 
 	for i := 0; i < 4; i++ {
 		h.Bounds[i] = v.Dot(Hull4BoundVectors[i])
 	}
-
-	h.Id = id
 
 	return h
 }

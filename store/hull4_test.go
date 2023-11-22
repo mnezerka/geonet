@@ -8,7 +8,7 @@ import (
 
 func TestNewHull4(t *testing.T) {
 	result := NewHull4FromVector(Vector{2, 7}, 1)
-	assert.Equal(t, Hull4{[4]float64{2, -2, 7, -7}, 1}, *result, "should add correctly")
+	assert.Equal(t, Hull4{Bounds: [4]float64{2, -2, 7, -7}, Id: 1}, *result, "should add correctly")
 }
 
 func TestHull4Add(t *testing.T) {
@@ -17,7 +17,7 @@ func TestHull4Add(t *testing.T) {
 
 	h := h1.Add(*h2)
 
-	assert.Equal(t, Hull4{[4]float64{5, -2, 7, -4}, 1}, h, "should add correctly")
+	assert.Equal(t, Hull4{Bounds: [4]float64{5, -2, 7, -4}, Id: 1}, h, "should add correctly")
 }
 
 func TestHull4Size(t *testing.T) {

@@ -4,6 +4,7 @@ import (
 	"os"
 	"text/template"
 
+	"mnezerka/geonet/auxiliary"
 	"mnezerka/geonet/store"
 
 	"github.com/apex/log"
@@ -12,19 +13,28 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var genFlags CommonParams
+
 var genCmd = &cobra.Command{
 	Use:   "gen",
 	Short: "Generate map",
 	Args:  cobra.MinimumNArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		// Do Stuff Here
-		log.Infof("generating map from %v", args)
+		auxiliary.Infof("generating map from %v", args)
 
 		store := store.NewStore()
+		store.LinesEnabled = !genFlags.SpotsOnly
 
 		var js []string
 
 		for file_ix := 0; file_ix < len(args); file_ix++ {
+
+			// get unique id of the gpx file (computed from file content)
+			hash, err := getFileHash(args[file_ix])
+			if err != nil {
+				return err
+			}
 
 			gpx, err := gpx.ParseFile(args[file_ix])
 			if err != nil {
@@ -32,21 +42,28 @@ var genCmd = &cobra.Command{
 				return err
 			}
 
-			//fmt.Printf("  length 2D: %f\n", gpx.Length2D())
-			//fmt.Printf("  tracks: %d\n", len(gpx.Tracks))
-
-			store.AddGpx(gpx, 0.0002)
+			store.AddGpx(gpx, genFlags.Treshold, hash)
 
 			// visualize add polyline
-			js = append(js, GpxToPolyline(gpx, file_ix+1, 1))
-
+			if genFlags.ShowGpxLines {
+				js = append(js, GpxToPolyline(gpx, file_ix+1, 1))
+			}
 		}
 
 		// visualize hulls
-		js = append(js, StoreHullsToPolygons(store, 1))
+		if genFlags.ShowHulls {
+			js = append(js, StoreHullsToPolygons(store, 1))
+		}
 
 		// visualize lines
-		js = append(js, StoreLinesToPolylines(store, 1))
+		if genFlags.ShowLines {
+			js = append(js, StoreLinesToPolylines(store, 1))
+		}
+
+		// visualize hulls as circles with variable diameter
+		if genFlags.ShowHeatSpots {
+			js = append(js, StoreHullsToHeatCircles(store, 1))
+		}
 
 		t, err := template.ParseFiles("cmd/tpl_preview.html")
 		if err != nil {
@@ -69,4 +86,10 @@ var genCmd = &cobra.Command{
 
 		return nil
 	},
+}
+
+func init() {
+	addCommonFlags(&genFlags, genCmd)
+
+	rootCmd.AddCommand(genCmd)
 }

@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"fmt"
-	"io/ioutil"
 	"mnezerka/geonet/store"
 	"os"
 	"path/filepath"
@@ -15,7 +14,11 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var cfgCasesDir string
+var (
+	cfgCasesDir string
+)
+
+var casesFlags CommonParams
 
 type Case struct {
 	Seq         int
@@ -24,6 +27,8 @@ type Case struct {
 	Dir         string
 	Gpx         []string `yaml:"gpx"`
 	Js          []string
+	SpotsOnly   bool
+	Treshold    float64
 }
 
 var casesCmd = &cobra.Command{
@@ -33,6 +38,8 @@ var casesCmd = &cobra.Command{
 		// Do Stuff Here
 		log.Infof("generating cases from dir %s", cfgCasesDir)
 
+		log.Infof("spots only: %v", casesFlags.SpotsOnly)
+
 		// ensure public directory exists
 		publicDir := filepath.Join(".", "public")
 		err := os.MkdirAll(publicDir, os.ModePerm)
@@ -40,12 +47,12 @@ var casesCmd = &cobra.Command{
 			return err
 		}
 
-		cases, err := generateCases(cfgCasesDir)
+		cases, err := generateCases(cfgCasesDir, casesFlags)
 		if err != nil {
 			return err
 		}
 
-		log.Infof("Cases: %v", cases[0].Js)
+		log.Debugf("Cases: %v", cases[0].Js)
 
 		err = cases2Html(cases, publicDir)
 		if err != nil {
@@ -56,7 +63,7 @@ var casesCmd = &cobra.Command{
 	},
 }
 
-func generateCases(dir string) ([]*Case, error) {
+func generateCases(dir string, casesFlags CommonParams) ([]*Case, error) {
 
 	var result []*Case
 
@@ -64,14 +71,14 @@ func generateCases(dir string) ([]*Case, error) {
 		return result, fmt.Errorf("directory %s does not exist", cfgCasesDir)
 	}
 
-	dirs, err := ioutil.ReadDir(dir)
+	dirs, err := os.ReadDir(dir)
 	if err != nil {
 		return result, err
 	}
 	for caseIx, caseDir := range dirs {
 		if caseDir.IsDir() {
 			log.Infof("case dir: %s", caseDir.Name())
-			items, err := ioutil.ReadDir(dir + "/" + caseDir.Name())
+			items, err := os.ReadDir(dir + "/" + caseDir.Name())
 			if err != nil {
 				return result, err
 			}
@@ -88,7 +95,7 @@ func generateCases(dir string) ([]*Case, error) {
 					}
 
 					// read file content
-					yamlFile, err := ioutil.ReadFile(filename)
+					yamlFile, err := os.ReadFile(filename)
 					if err != nil {
 						return result, err
 					}
@@ -97,6 +104,8 @@ func generateCases(dir string) ([]*Case, error) {
 					var c Case
 					c.Seq = caseIx
 					c.Dir = dir + "/" + caseDir.Name()
+					c.SpotsOnly = casesFlags.SpotsOnly
+					c.Treshold = casesFlags.Treshold
 					err = yaml.Unmarshal(yamlFile, &c)
 					if err != nil {
 						return result, err
@@ -120,6 +129,7 @@ func generateCase(c *Case) error {
 	log.Infof("Case %s", c.Title)
 
 	store := store.NewStore()
+	store.LinesEnabled = !c.SpotsOnly
 
 	for file_ix := 0; file_ix < len(c.Gpx); file_ix++ {
 
@@ -129,7 +139,7 @@ func generateCase(c *Case) error {
 			return err
 		}
 
-		store.AddGpx(gpx, 0.0002)
+		store.AddGpx(gpx, c.Treshold, "id")
 
 		// visualize add polyline
 		c.Js = append(c.Js, GpxToPolyline(gpx, file_ix+1, c.Seq))
@@ -141,7 +151,7 @@ func generateCase(c *Case) error {
 	// visualize lines
 	c.Js = append(c.Js, StoreLinesToPolylines(store, c.Seq))
 
-	log.Infof("js items: %d", len(c.Js))
+	log.Debugf("js items: %d", len(c.Js))
 
 	return nil
 }
@@ -174,5 +184,8 @@ func cases2Html(cases []*Case, publicDir string) error {
 
 func init() {
 	casesCmd.PersistentFlags().StringVar(&cfgCasesDir, "cases-dir", "./cases", "cases directory)")
+	addCommonFlags(&casesFlags, casesCmd)
+	//casesCmd.PersistentFlags().BoolVar(&cfgSpotsOnly, "spots-only", false, "store spots only, do not connect by lines")
+	//casesCmd.PersistentFlags().Float64Var(&cfgTreshold, "treshold", 0.0002, "treshold in meters")
 	rootCmd.AddCommand(casesCmd)
 }
