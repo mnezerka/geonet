@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <base target="_top">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <title>{{ .Title }}</title>
+
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+
+    <style>
+        html, body {
+            height: 100%;
+            width: 100%;
+            margin: 0;
+        }
+        .leaflet-container {
+            height: 100%;
+            width: 100%;
+            max-width: 100%;
+            max-height: 100%;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="map" style="width: 100%; height: 100%;"></div>
+    <script>
+        const geojson={{ .GeoJson }}
+        //const meta=$meta
+    </script>
+    <script>
+
+        function track_id_to_track_name(id) {
+            if (meta.tracks !== undefined) {
+                for (let i = 0; i < meta.tracks.length; i++) {
+                    if (meta.tracks[i].id == id) {
+                        return meta.tracks[i].name
+                        break;
+                    }
+                }
+            }
+            return 'track: ' + id
+        }
+
+        function generateHeatmapColor(value, min, max) {
+            // Clamp the value between the min and max
+            value = Math.min(Math.max(value, min), max);
+
+            // Normalize the value between 0 and 1
+            var normalizedValue = (value - min) / (max - min);
+
+            // Interpolate between red and yellow
+            var red = 255;
+            var green = Math.round(255 * normalizedValue);
+            var blue = 0;
+
+            // Convert the RGB values to hexadecimal
+            var color = "#" + componentToHex(red) + componentToHex(green) + componentToHex(blue);
+
+            return color;
+        }
+
+        function componentToHex(c) {
+            var hex = c.toString(16);
+            return hex.length == 1 ? "0" + hex : hex;
+        }
+
+        const map = L.map('map').setView([51.505, -0.09], 13);
+
+        const tiles = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+            attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+        }).addTo(map);
+
+
+        const geojsonMarkerOptions = {
+            radius: 5,
+            fillColor: "#fff969",
+            color: "#cfc939",
+            weight: 1,
+            opacity: 1,
+            fillOpacity: 0.8
+        };
+
+        const styleFunc = function(feature) {
+
+            if (feature.properties.track !== undefined) {
+                let tstyle = {
+                    opacity: 0.3
+                }
+                switch (feature.properties.track) {
+                    case 0: tstyle.color = "#ff0000"; break;
+                    case 1: tstyle.color = "#0000ff"; break;
+                }
+
+                return tstyle
+            }
+
+            if (feature.properties.hull !== undefined) {
+                let tstyle = {
+                    color : 'orange'
+                }
+                return tstyle
+            }
+
+            if (feature.properties.edge !== undefined) {
+                let tstyle = {
+                    weight: 1
+                }
+
+                if (feature.properties.q !== undefined) {
+                    tstyle.weight = 1 + feature.properties.q * 0.2
+                    tstyle.color = generateHeatmapColor(feature.properties.q, 1, 200)
+                }
+                return tstyle
+            }
+        }
+
+        const clusterColors = [
+            'Lime',
+            'Yellow',
+            'Orange',
+            'Pink',
+            'Violet',
+            'DarkOrange',
+            'Gold'
+        ]
+
+        const pointToLayerFunc = function(feature, latlng) {
+            opts = {}
+            Object.assign(opts, geojsonMarkerOptions);
+
+            if (feature.properties.cluster !== undefined) {
+                opts.color = clusterColors[feature.properties.cluster % clusterColors.length]
+                opts.fillColor = clusterColors[feature.properties.cluster % clusterColors.length]
+            }
+
+            switch (feature.properties.track) {
+                case 0:
+                    opts.fillColor = "#ff0000"
+                    opts.radius = 3
+                    break;
+                case 1:
+                    opts.fillColor = "#0000ff"
+                    opts.radius = 3
+                    break;
+            }
+
+            if (feature.properties.spot !== undefined) {
+                    opts.fillColor = 'red'
+                    opts.radius = 3
+                /*if (feature.properties.q !== undefined) {
+                    opts.radius = 5 + feature.properties.q * 2
+                }*/
+            }
+            return L.circleMarker(latlng, opts);
+        }
+
+        const onEachFeatureFunc = function (feature, latlng) {
+            let msg = '<p>';
+            if (feature.properties.tracks !== undefined) {
+                let tracks = feature.properties.tracks;
+                for (let i = 0; i < tracks.length; i++) {
+                    msg += track_id_to_track_name(tracks[i])
+                    msg += "<br>"
+                }
+            }
+            msg += '</p>'
+
+            latlng.bindPopup(msg);
+        }
+
+        matchesLayer = L.geoJson(
+            geojson,
+            {
+                style: styleFunc,
+                pointToLayer: pointToLayerFunc,
+                onEachFeature: onEachFeatureFunc
+            }).addTo(map);
+
+        map.fitBounds(matchesLayer.getBounds())
+
+    </script>
+</body>
+</html>

@@ -4,13 +4,13 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/apex/log"
-	"github.com/apex/log/handlers/text"
 	"github.com/spf13/cobra"
 )
 
+var verbose bool
+
 var rootCmd = &cobra.Command{
-	Use: "geonet Utility",
+	Use: "geonet utility",
 }
 
 func Execute() {
@@ -23,8 +23,7 @@ func Execute() {
 func init() {
 	cobra.OnInitialize(initConfig)
 
-	log.SetHandler(text.New(os.Stderr))
-
+	rootCmd.PersistentFlags().BoolVarP(&verbose, "verbose", "v", false, "verbose output")
 }
 
 func initConfig() {}
