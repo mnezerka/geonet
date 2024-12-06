@@ -8,6 +8,8 @@ import (
 	"mnezerka/geonet/store"
 )
 
+const INTERPOLATION_DISTANCE = 30 // in meters
+
 var genCmd = &cobra.Command{
 	Use:   "gen",
 	Short: "Generate map",
@@ -37,12 +39,15 @@ var genCmd = &cobra.Command{
 				return err
 			}
 
-			pointsInterpolated, err := gpxutils.InterpolateDistance(points, 10)
+			log.Debugf("points raw: %d", len(points))
+			pointsInterpolated, err := gpxutils.InterpolateDistance(points, INTERPOLATION_DISTANCE)
 			if err != nil {
 				return err
 			}
 
-			err = store.AddGpx(points, args[file_ix])
+			log.Debugf("points interpolated: %d", len(pointsInterpolated))
+
+			err = store.AddGpx(pointsInterpolated, args[file_ix])
 			if err != nil {
 				return err
 			}

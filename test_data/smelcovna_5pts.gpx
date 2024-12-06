@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<gpx creator="StravaGPX" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.topografix.com/GPX/1/1 http://www.topografix.com/GPX/1/1/gpx.xsd http://www.garmin.com/xmlschemas/GpxExtensions/v3 http://www.garmin.com/xmlschemas/GpxExtensionsv3.xsd http://www.garmin.com/xmlschemas/TrackPointExtension/v1 http://www.garmin.com/xmlschemas/TrackPointExtensionv1.xsd" version="1.1" xmlns="http://www.topografix.com/GPX/1/1" xmlns:gpxtpx="http://www.garmin.com/xmlschemas/TrackPointExtension/v1" xmlns:gpxx="http://www.garmin.com/xmlschemas/GpxExtensions/v3">
+ <metadata>
+  <time>2022-06-28T17:08:43Z</time>
+ </metadata>
+ <trk>
+  <name>Smelcovna</name>
+  <type>1</type>
+  <trkseg>
+   <trkpt lat="49.2209990" lon="16.5598970">
+    <ele>253.6</ele>
+    <time>2022-06-28T17:08:43Z</time>
+    <extensions>
+     <gpxtpx:TrackPointExtension>
+      <gpxtpx:atemp>29</gpxtpx:atemp>
+      <gpxtpx:hr>98</gpxtpx:hr>
+     </gpxtpx:TrackPointExtension>
+    </extensions>
+   </trkpt>
+
+   <trkpt lat="49.2209990" lon="16.5598970">
+    <ele>253.8</ele>
+    <time>2022-06-28T17:08:49Z</time>
+    <extensions>
+     <gpxtpx:TrackPointExtension>
+      <gpxtpx:atemp>30</gpxtpx:atemp>
+      <gpxtpx:hr>92</gpxtpx:hr>
+     </gpxtpx:TrackPointExtension>
+    </extensions>
+   </trkpt>
+
+   <trkpt lat="49.2772100" lon="16.5262900">
+    <ele>354.2</ele>
+    <time>2022-06-28T17:32:21Z</time>
+    <extensions>
+     <gpxtpx:TrackPointExtension>
+      <gpxtpx:atemp>30</gpxtpx:atemp>
+      <gpxtpx:hr>145</gpxtpx:hr>
+     </gpxtpx:TrackPointExtension>
+    </extensions>
+   </trkpt>
+
+   <trkpt lat="49.2819190" lon="16.5253580">
+    <ele>343.8</ele>
+    <time>2022-06-28T17:33:28Z</time>
+    <extensions>
+     <gpxtpx:TrackPointExtension>
+      <gpxtpx:atemp>30</gpxtpx:atemp>
+      <gpxtpx:hr>121</gpxtpx:hr>
+     </gpxtpx:TrackPointExtension>
+    </extensions>
+   </trkpt>
+
+   <trkpt lat="49.2856240" lon="16.5235600">
+    <ele>323.6</ele>
+    <time>2022-06-28T17:34:01Z</time>
+    <extensions>
+     <gpxtpx:TrackPointExtension>
+      <gpxtpx:atemp>30</gpxtpx:atemp>
+      <gpxtpx:hr>101</gpxtpx:hr>
+     </gpxtpx:TrackPointExtension>
+    </extensions>
+   </trkpt>
+
+  </trkseg>
+ </trk>
+</gpx>

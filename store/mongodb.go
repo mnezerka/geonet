@@ -167,32 +167,24 @@ func (ms *MongoStore) AddGpx(points []gpx.GPXPoint, filePath string) error {
 
 	var lastPointId int64 = NIL_GEO_ID
 
-	for i := 0; i < len(gpx.Tracks); i++ {
-		track := gpx.Tracks[i]
+	newTrackMeta := TrackMeta{
+		GeoId:    ms.GenGeoId(),
+		Name:     filePath,
+		FilePath: filePath,
+	}
 
-		newTrackMeta := TrackMeta{
-			GeoId:    ms.GenGeoId(),
-			Name:     fmt.Sprintf("%s-%d", gpx.Name, i),
-			FilePath: filePath,
-		}
+	_, err := ms.tracks.InsertOne(context.TODO(), newTrackMeta)
+	if err != nil {
+		return err
+	}
 
-		_, err := ms.tracks.InsertOne(context.TODO(), newTrackMeta)
+	log.Debugf("registered track %d", newTrackMeta.GeoId)
+
+	for i := 0; i < len(points); i++ {
+		point := points[i]
+		lastPointId, err = ms.AddGpxPoint(&point, newTrackMeta.GeoId, lastPointId)
 		if err != nil {
 			return err
-		}
-
-		log.Debugf("added track %d", newTrackMeta.GeoId)
-
-		for j := 0; j < len(track.Segments); j++ {
-			segment := track.Segments[j]
-			for k := 0; k < len(segment.Points); k++ {
-
-				point := segment.Points[k]
-				lastPointId, err = ms.AddGpxPoint(&point, newTrackMeta.GeoId, lastPointId)
-				if err != nil {
-					return err
-				}
-			}
 		}
 	}
 
