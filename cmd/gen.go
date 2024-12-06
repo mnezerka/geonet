@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"github.com/mnezerka/gpxcli/gpxutils"
 	"github.com/spf13/cobra"
 	"github.com/tkrajina/gpxgo/gpx"
 	"mnezerka/geonet/log"
@@ -20,7 +21,7 @@ var genCmd = &cobra.Command{
 		// clean all data from previous executions
 		store.Reset()
 
-		log.Infof("generating map from %v", args)
+		log.Infof("generating geonet from %v", args)
 
 		for file_ix := 0; file_ix < len(args); file_ix++ {
 
@@ -31,7 +32,17 @@ var genCmd = &cobra.Command{
 				return err
 			}
 
-			err = store.AddGpx(gpxFile, args[file_ix])
+			points, err := gpxutils.GpxFileToPoints(gpxFile)
+			if err != nil {
+				return err
+			}
+
+			pointsInterpolated, err := gpxutils.InterpolateDistance(points, 10)
+			if err != nil {
+				return err
+			}
+
+			err = store.AddGpx(points, args[file_ix])
 			if err != nil {
 				return err
 			}
