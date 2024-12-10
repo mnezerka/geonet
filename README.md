@@ -6,6 +6,15 @@ GeoNet is a library for generating net from multiple gps tracks.
 
 Current state of the algorithm could be checkd on [Cases page](https://mnezerka.github.io/geonet/)
 
+## Usage
+
+Local setup:
+```bash
+docker-compose up -d
+export MONGODB_URI="mongodb://root:example@localhost:27017/"
+./geonet -h
+```
+
 ## Algorithm
 
 - tracks are added one by one
@@ -20,6 +29,8 @@ Current state of the algorithm could be checkd on [Cases page](https://mnezerka.
     - if such hull doesn't exist, register new hull
 
 TODO: document line splitting part of algorithm
+
+
 
 ## Data Structures
 
