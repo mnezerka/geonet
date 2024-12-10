@@ -30,15 +30,27 @@
     <div id="map" style="width: 100%; height: 100%;"></div>
     <script>
         const geojson={{ .GeoJson }}
-        //const meta=$meta
+        const meta={{ .Meta }}
     </script>
     <script>
+
+        const clusterColors = [
+            'Blue',
+            'Green',
+            'Lime',
+            'Yellow',
+            'Orange',
+            'Pink',
+            'Violet',
+            'DarkOrange',
+            'Gold'
+        ]
 
         function track_id_to_track_name(id) {
             if (meta.tracks !== undefined) {
                 for (let i = 0; i < meta.tracks.length; i++) {
                     if (meta.tracks[i].id == id) {
-                        return meta.tracks[i].name
+                        return meta.tracks[i].id + ":" + meta.tracks[i].name
                         break;
                     }
                 }
@@ -46,6 +58,14 @@
             return 'track: ' + id
         }
 
+        // enhance tracks of colors, titles, etc.
+        if (meta.tracks !== undefined) {
+            for (let i = 0; i < meta.tracks.length; i++) {
+                meta.tracks[i].color = clusterColors[i % clusterColors.length]
+            }
+        }
+
+        /*
         function generateHeatmapColor(value, min, max) {
             // Clamp the value between the min and max
             value = Math.min(Math.max(value, min), max);
@@ -63,6 +83,7 @@
 
             return color;
         }
+        */
 
         function componentToHex(c) {
             var hex = c.toString(16);
@@ -86,8 +107,25 @@
             fillOpacity: 0.8
         };
 
+        const getColorForTracks = function(tracks) {
+            if (tracks.length == 0) {
+                return
+            }
+
+            let first = tracks[0]
+            if (meta.tracks) {
+                for (let i = 0; i < meta.tracks.length; i++) {
+                    if (meta.tracks[i].id == first) {
+                        return meta.tracks[i].color
+                    }
+                }
+            }
+        }
+
+        // executed for each geojson feature (point, linestring, etc...)
         const styleFunc = function(feature) {
 
+            /*
             if (feature.properties.track !== undefined) {
                 let tstyle = {
                     opacity: 0.3
@@ -100,13 +138,6 @@
                 return tstyle
             }
 
-            if (feature.properties.hull !== undefined) {
-                let tstyle = {
-                    color : 'orange'
-                }
-                return tstyle
-            }
-
             if (feature.properties.edge !== undefined) {
                 let tstyle = {
                     weight: 1
@@ -114,26 +145,42 @@
 
                 if (feature.properties.q !== undefined) {
                     tstyle.weight = 1 + feature.properties.q * 0.2
-                    tstyle.color = generateHeatmapColor(feature.properties.q, 1, 200)
+                    //tstyle.color = generateHeatmapColor(feature.properties.q, 1, 200)
                 }
                 return tstyle
             }
+            */
+
+            if (feature.geometry.type === 'LineString') {
+                let tstyle = {
+                    color: getColorForTracks(feature.properties.tracks),
+                }
+                return tstyle
+            }
+
+            if (feature.geometry.type === 'Point') {
+                let tstyle = {
+                    fillColor: getColorForTracks(feature.properties.tracks),
+                    radius: 5
+                }
+
+                if (feature.properties.crossing === true) {
+                    tstyle.fillColor = 'red'
+                    tstyle.radius = 10 
+                 }
+ 
+                return tstyle
+            }
+
+            return {}
         }
 
-        const clusterColors = [
-            'Lime',
-            'Yellow',
-            'Orange',
-            'Pink',
-            'Violet',
-            'DarkOrange',
-            'Gold'
-        ]
-
+        // this is executed only for points
         const pointToLayerFunc = function(feature, latlng) {
             opts = {}
             Object.assign(opts, geojsonMarkerOptions);
 
+            /*
             if (feature.properties.cluster !== undefined) {
                 opts.color = clusterColors[feature.properties.cluster % clusterColors.length]
                 opts.fillColor = clusterColors[feature.properties.cluster % clusterColors.length]
@@ -149,19 +196,35 @@
                     opts.radius = 3
                     break;
             }
+            */
 
+            /*
             if (feature.properties.spot !== undefined) {
                     opts.fillColor = 'red'
                     opts.radius = 3
-                /*if (feature.properties.q !== undefined) {
+                if (feature.properties.q !== undefined) {
                     opts.radius = 5 + feature.properties.q * 2
-                }*/
+                }
             }
+            */
+
+            // if point represents crossing of tracks
+            /*
+            if (feature.properties.crossing === true) {
+                    opts.fillColor = 'red'
+                    opts.radius = 10 
+            }
+            */
+ 
             return L.circleMarker(latlng, opts);
         }
 
+        // this is executed for each geojson feature (point, linestring, etc.)
         const onEachFeatureFunc = function (feature, latlng) {
             let msg = '<p>';
+            if (feature.properties.id !== undefined) {
+                msg += feature.geometry.type + ' id: ' + feature.properties.id + '<br>'; 
+            }
             if (feature.properties.tracks !== undefined) {
                 let tracks = feature.properties.tracks;
                 for (let i = 0; i < tracks.length; i++) {

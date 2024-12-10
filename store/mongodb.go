@@ -2,29 +2,30 @@ package store
 
 import (
 	"context"
-	"fmt"
 	"os"
-	"slices"
-	"strings"
 
 	"mnezerka/geonet/log"
 
-	geojson "github.com/paulmach/go.geojson"
-
-	"github.com/tkrajina/gpxgo/gpx"
 	"go.mongodb.org/mongo-driver/bson"
-	//"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 const MAX_SPOT_DISTANCE = 75
-const NIL_GEO_ID = -1
+const NIL_ID = -1
 
-type TrackMeta struct {
-	GeoId    int64  `json:"geoid" bson:"geoid"`
-	Name     string `bson:"name"`
-	FilePath string `bson:"filepath"`
+type DbMeta struct {
+	Tracks []DbTrack `json:"tracks"`
+}
+
+type DbItem struct {
+	Id int64 `json:"id" bson:"id"`
+}
+
+type DbTrack struct {
+	Id       int64  `json:"id" bson:"id"`
+	Name     string `json:"name" bson:"name"`
+	FilePath string `json:"filepath" bson:"filepath"`
 }
 
 type GeoJsonGeometry struct {
@@ -33,10 +34,14 @@ type GeoJsonGeometry struct {
 }
 
 type DbPoint struct {
-	GeoId  int64           `json:"geoid" bson:"geoid"`
-	Loc    GeoJsonGeometry `json:"loc" bson:"loc"`
-	Tracks []int64         `bson:"tracks"`
-	Count  int             `bson:"count"`
+	Id        int64           `json:"id" bson:"id"`
+	Loc       GeoJsonGeometry `json:"loc" bson:"loc"`
+	Tracks    []int64         `bson:"tracks"`
+	Count     int             `bson:"count"`
+	Begin     bool            `bson:"begin"`
+	End       bool            `bson:"end"`
+	Crossing  bool            `bson:"crossing"`
+	Processed bool            `bson:"processed"`
 }
 
 type DbEdge struct {
@@ -47,12 +52,13 @@ type DbEdge struct {
 }
 
 type MongoStore struct {
-	client    *mongo.Client
-	db        *mongo.Database
-	tracks    *mongo.Collection
-	points    *mongo.Collection
-	edges     *mongo.Collection
-	lastGeoId int64
+	client      *mongo.Client
+	db          *mongo.Database
+	tracks      *mongo.Collection
+	points      *mongo.Collection
+	edges       *mongo.Collection
+	lastPointId int64
+	lastTrackId int64
 }
 
 func NewMongoStore() *MongoStore {
@@ -107,7 +113,7 @@ func NewMongoStore() *MongoStore {
 	// create indexes on points
 	indexModels := []mongo.IndexModel{
 		{Keys: bson.M{"loc": "2dsphere"}}, // geospatial index
-		{Keys: bson.M{"geoid": 1}},
+		{Keys: bson.M{"id": 1}},
 	}
 
 	_, err = ms.points.Indexes().CreateMany(context.TODO(), indexModels)
@@ -116,9 +122,10 @@ func NewMongoStore() *MongoStore {
 	}
 	log.Debug("points index created")
 
-	ms.lastGeoId = ms.GetMaxGeoId()
+	ms.lastTrackId = ms.GetMaxId(ms.tracks)
+	ms.lastPointId = ms.GetMaxId(ms.points)
 
-	log.Debugf("last geo id set to: %d", ms.lastGeoId)
+	log.Debugf("last geo id set to: %d", ms.lastPointId)
 
 	return &ms
 }
@@ -130,282 +137,64 @@ func (ms *MongoStore) Close() {
 	}
 }
 
-func (ms *MongoStore) GetMaxGeoId() int64 {
-	opts := options.Find().SetSort(bson.M{"geoid": NIL_GEO_ID}).SetLimit(1)
-	cursor, err := ms.points.Find(context.TODO(), bson.D{}, opts)
+func (ms *MongoStore) GetMaxId(collection *mongo.Collection) int64 {
+	opts := options.Find().SetSort(bson.M{"id": NIL_ID}).SetLimit(1)
+	cursor, err := collection.Find(context.TODO(), bson.D{}, opts)
 	if err != nil {
 		panic(err)
 	}
-	var results []DbPoint
+	var results []DbItem
 
 	if err = cursor.All(context.TODO(), &results); err != nil {
 		panic(err)
 	}
 
 	if len(results) > 0 {
-		return results[0].GeoId
+		return results[0].Id
 	}
 
 	return 0
 }
 
-func (ms *MongoStore) GenGeoId() int64 {
-	ms.lastGeoId++
-	return ms.lastGeoId
+func (ms *MongoStore) GenPointId() int64 {
+	ms.lastPointId++
+	return ms.lastPointId
+}
+
+func (ms *MongoStore) GenTrackId() int64 {
+	ms.lastTrackId++
+	return ms.lastTrackId
 }
 
 func (ms *MongoStore) Reset() {
 	ms.tracks.DeleteMany(context.TODO(), bson.M{})
 	ms.points.DeleteMany(context.TODO(), bson.M{})
 	ms.edges.DeleteMany(context.TODO(), bson.M{})
-	ms.lastGeoId = 0
+	ms.lastPointId = 0
+	ms.lastTrackId = 0
 }
 
-func (ms *MongoStore) AddGpx(points []gpx.GPXPoint, filePath string) error {
-
-	log.Infof("adding %s to the mongodb store", filePath)
-
-	var lastPointId int64 = NIL_GEO_ID
-
-	newTrackMeta := TrackMeta{
-		GeoId:    ms.GenGeoId(),
-		Name:     filePath,
-		FilePath: filePath,
-	}
-
-	_, err := ms.tracks.InsertOne(context.TODO(), newTrackMeta)
-	if err != nil {
-		return err
-	}
-
-	log.Debugf("registered track %d", newTrackMeta.GeoId)
-
-	for i := 0; i < len(points); i++ {
-		point := points[i]
-		lastPointId, err = ms.AddGpxPoint(&point, newTrackMeta.GeoId, lastPointId)
-		if err != nil {
-			return err
-		}
-	}
-
-	return nil
-}
-
-func (ms *MongoStore) AddGpxPoint(point *gpx.GPXPoint, trackId int64, lastPointId int64) (int64, error) {
-
-	var finalPointId int64
-
-	cntr := bson.M{
-		"type":        "Point",
-		"coordinates": []float64{point.Longitude, point.Latitude},
-	}
-
-	// look for existing point to be reused
-	cursor, err := ms.points.Find(
-		context.TODO(),
-		bson.M{
-			"loc": bson.M{
-				"$nearSphere": bson.M{
-					"$geometry":    cntr,
-					"$maxDistance": MAX_SPOT_DISTANCE, // distance in meters
-				},
-			},
-		})
-
-	if err != nil {
-		return 0, err
-	}
-
-	var nearest []DbPoint
-
-	err = cursor.All(context.TODO(), &nearest)
-	if err != nil {
-		return 0, err
-	}
-
-	var nps []string
-	for _, p := range nearest {
-		nps = append(nps, fmt.Sprintf("%d", p.GeoId))
-	}
-	log.Debugf("Nearest points: %s", strings.Join(nps, ","))
-
-	// if there is some point close to the actual one
-	if len(nearest) > 0 {
-		// get first (nearest) one
-		n := nearest[0]
-
-		log.Debugf("reusing point %v", n)
-
-		// increase counter
-		//update := bson.M{"$set": bson.M{"count": n.Count + 1}}
-		update := bson.M{"count": n.Count + 1}
-
-		// if current track is not associated with reused point, add it
-		if !slices.Contains(n.Tracks, trackId) {
-			update["tracks"] = append(n.Tracks, trackId)
-		}
-
-		log.Debugf("updating point, geoid: %d update: %v", n.GeoId, update)
-
-		_, err = ms.points.UpdateOne(context.TODO(), bson.M{"geoid": n.GeoId}, bson.M{"$set": update})
-		if err != nil {
-			return 0, err
-		}
-
-		finalPointId = n.GeoId
-	} else {
-		// no near point exists, register new one
-
-		//logging.debug('registring new point %s track_id=%s (%s)', final_point_id, track_id, point)
-		newPoint := DbPoint{
-			GeoId: ms.GenGeoId(),
-			Loc: GeoJsonGeometry{
-				Type:        "Point",
-				Coordinates: []float64{point.Longitude, point.Latitude},
-			},
-			Tracks: []int64{trackId},
-			Count:  1,
-		}
-
-		log.Debugf("creating new point %v", newPoint)
-
-		_, err := ms.points.InsertOne(context.TODO(), newPoint)
-		if err != nil {
-			return 0, err
-		}
-
-		finalPointId = newPoint.GeoId
-	}
-
-	// --------------------  edge processing
-	if lastPointId != NIL_GEO_ID {
-
-		// ignore self edges
-		if lastPointId != finalPointId {
-			// create edge with sorted point ids to avoid duplicates (reverse direction of track movement)
-			edgePoints := []int64{min(lastPointId), max(finalPointId)}
-			edgeId := fmt.Sprintf("%d-%d", edgePoints[0], edgePoints[1])
-
-			log.Debugf("new edge %s", edgeId)
-
-			newEdge := DbEdge{
-				Id:     edgeId,
-				Points: edgePoints,
-				Tracks: []int64{trackId},
-				Count:  1,
-			}
-
-			// check if edge already exists
-			var existingEdges []DbEdge
-			cursor, err = ms.edges.Find(context.TODO(), bson.M{"id": edgeId})
-			if err != nil {
-				return NIL_GEO_ID, err
-			}
-
-			if err = cursor.All(context.TODO(), &existingEdges); err != nil {
-				return NIL_GEO_ID, err
-			}
-
-			if len(existingEdges) > 0 {
-
-				existingEdge := existingEdges[0]
-				log.Debugf("reusing existing edge: %s", existingEdge.Id)
-				update := bson.M{
-					"count": existingEdge.Count + 1,
-				}
-
-				// if current track is not associated with reused point, add it
-				if !slices.Contains(existingEdge.Tracks, trackId) {
-					update["tracks"] = append(existingEdge.Tracks, trackId)
-				}
-
-				log.Debugf("updating %d %v", existingEdge.Id, update)
-
-				_, err = ms.edges.UpdateOne(context.TODO(), bson.M{"d": existingEdge.Id}, bson.M{"$set": update})
-				if err != nil {
-					return 0, err
-				}
-			} else {
-				log.Debugf("registering new edge: %s", newEdge.Id)
-				_, err = ms.edges.InsertOne(context.TODO(), newEdge)
-				if err != nil {
-					return NIL_GEO_ID, err
-				}
-
-			}
-		}
-	}
-
-	return finalPointId, nil
-}
-
-func (ms *MongoStore) ToGeoJson() (*geojson.FeatureCollection, error) {
-
-	collection := geojson.NewFeatureCollection()
-
-	// render points and build dict of points for searching when
-	// rendering edges
-
-	cursor, err := ms.points.Find(context.TODO(), bson.M{})
-	if err != nil {
-		return nil, err
-	}
-
-	var points []DbPoint
-
-	err = cursor.All(context.TODO(), &points)
-	if err != nil {
-		return nil, err
-	}
-
-	for i := 0; i < len(points); i++ {
-		point := points[i]
-
-		//pnt := geojson.NewFeature(orb.Point{point.Loc.Coordinates[0], point.Loc.Coordinates[1]})
-		pnt := geojson.NewPointFeature(point.Loc.Coordinates)
-
-		collection.AddFeature(pnt)
-	}
-
-	// render edges
-	cursor, err = ms.edges.Find(context.TODO(), bson.M{})
-	if err != nil {
-		return nil, err
-	}
-
-	var edges []DbEdge
-
-	err = cursor.All(context.TODO(), &edges)
-	if err != nil {
-		return nil, err
-	}
-
-	for i := 0; i < len(edges); i++ {
-		edge := edges[i]
-		p1 := findPoint(edge.Points[0], &points)
-		p2 := findPoint(edge.Points[1], &points)
-
-		// of some of the points were not found -> database is inconsistent
-		if p1 == nil || p2 == nil {
-			return nil, fmt.Errorf("inconsistent database, some edge points where not found %d %d", edge.Points[0], edge.Points[1])
-		}
-
-		log.Debugf("edge: %v, p1: %v p2: %v ", edge, p1, p2)
-
-		edgeCoordinates := [][]float64{p1.Loc.Coordinates, p2.Loc.Coordinates}
-
-		line := geojson.NewLineStringFeature(edgeCoordinates)
-		collection.AddFeature(line)
-	}
-
-	return collection, nil
-}
-
-func findPoint(geoId int64, points *[]DbPoint) *DbPoint {
+func findPoint(id int64, points *[]DbPoint) *DbPoint {
 	for i := 0; i < len(*points); i++ {
-		if (*points)[i].GeoId == geoId {
+		if (*points)[i].Id == id {
 			return &(*points)[i]
 		}
 	}
 	return nil
+}
+
+func (ms *MongoStore) GetMeta() (DbMeta, error) {
+
+	var meta DbMeta
+
+	cursor, err := ms.tracks.Find(context.TODO(), bson.D{})
+	if err != nil {
+		return meta, err
+	}
+
+	if err = cursor.All(context.TODO(), &meta.Tracks); err != nil {
+		return meta, err
+	}
+
+	return meta, nil
 }

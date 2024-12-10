@@ -39,15 +39,18 @@ var genCmd = &cobra.Command{
 				return err
 			}
 
-			log.Debugf("points raw: %d", len(points))
-			pointsInterpolated, err := gpxutils.InterpolateDistance(points, INTERPOLATION_DISTANCE)
-			if err != nil {
-				return err
-			}
+			/*
+					log.Debugf("points raw: %d", len(points))
+					pointsInterpolated, err := gpxutils.InterpolateDistance(points, INTERPOLATION_DISTANCE)
+					if err != nil {
+						return err
+					}
 
-			log.Debugf("points interpolated: %d", len(pointsInterpolated))
+				log.Debugf("points interpolated: %d", len(pointsInterpolated))
+			*/
 
-			err = store.AddGpx(pointsInterpolated, args[file_ix])
+			//err = store.AddGpx(pointsInterpolated, args[file_ix])
+			err = store.AddGpx(points, args[file_ix])
 			if err != nil {
 				return err
 			}

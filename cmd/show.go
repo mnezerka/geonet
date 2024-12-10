@@ -2,6 +2,7 @@ package cmd
 
 import (
 	//"fmt"
+	"encoding/json"
 	"os"
 	"text/template"
 
@@ -12,6 +13,7 @@ import (
 
 type mapData struct {
 	Title   string
+	Meta    string
 	GeoJson string
 }
 
@@ -27,6 +29,17 @@ var showCmd = &cobra.Command{
 		log.Info("visualisation of geonet")
 
 		collection, err := store.ToGeoJson()
+		if err != nil {
+			return err
+		}
+
+		meta, err := store.GetMeta()
+		if err != nil {
+			return err
+		}
+
+		// meta - json
+		metaJson, err := json.Marshal(meta)
 		if err != nil {
 			return err
 		}
@@ -47,6 +60,7 @@ var showCmd = &cobra.Command{
 
 		data := mapData{
 			Title:   "GeoNet",
+			Meta:    string(metaJson),
 			GeoJson: string(rawJSON),
 		}
 
@@ -54,28 +68,6 @@ var showCmd = &cobra.Command{
 		if err != nil {
 			return (err)
 		}
-
-		//fmt.Printf("%s", string(rawJSON))
-
-		/*
-
-			  tpl_path = 'templates/tpl_map_grid.html'
-			print(f'generating html content from template {tpl_path}')
-			with open(tpl_path, 'r') as tpl_file:
-			    tpl = string.Template(tpl_file.read())
-
-			html_content = tpl.substitute({
-			    'title': 'Net',
-			    'geojson': geojson_content,
-			    'meta': n.get_meta()
-			})
-
-			html_path = f'{output}.html'
-			print(f'writing html to {html_path}')
-			with open(html_path, 'w') as html_file:
-			    html_file.write(html_content)
-
-		*/
 
 		return nil
 	},
