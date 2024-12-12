@@ -232,41 +232,6 @@ func (ms *MongoStore) getSingleEdge(filter bson.M) *DbEdge {
 	return &edge
 }
 
-func (ms *MongoStore) getPointsByIds(ids []int64, filter bson.M) []DbPoint {
-	var points []DbPoint
-
-	filter["id"] = bson.M{
-		"$in": ids,
-	}
-
-	log.Debugf("filter=%v", filter)
-
-	cursor, err := ms.points.Find(context.TODO(), filter)
-	if err != nil {
-		panic(err)
-	}
-
-	if err = cursor.All(context.TODO(), &points); err != nil {
-		panic(err)
-	}
-
-	/*
-		if len(ids) != len(points) {
-			panic(fmt.Errorf("inconsistent number of ids (%d) and fetched entries (%d)", len(ids), len(points)))
-		}
-	*/
-
-	return points
-}
-
-func (ms *MongoStore) updateSinglePoint(id int64, update bson.M) {
-
-	_, err := ms.points.UpdateOne(context.TODO(), bson.M{"id": id}, bson.M{"$set": update})
-	if err != nil {
-		panic(err)
-	}
-}
-
 func pointsToIds(points []DbPoint) []int64 {
 	var ids []int64
 	for i := 0; i < len(points); i++ {

@@ -14,6 +14,12 @@ import (
 
 const NIL_ID = -1
 
+type DbExport struct {
+	Points []DbPoint `json:"points"`
+	Edges  []DbEdge  `json:"edges"`
+	Tracks []DbTrack `json:"tracks"`
+}
+
 type DbMeta struct {
 	Tracks []DbTrack `json:"tracks"`
 }
@@ -199,4 +205,72 @@ func (ms *MongoStore) GetMeta() (DbMeta, error) {
 	}
 
 	return meta, nil
+}
+
+func (ms *MongoStore) Export() *DbExport {
+
+	var export DbExport
+
+	cursor, err := ms.points.Find(context.TODO(), bson.M{})
+	if err != nil {
+		panic(err)
+	}
+
+	if err = cursor.All(context.TODO(), &export.Points); err != nil {
+		panic(err)
+	}
+
+	cursor, err = ms.edges.Find(context.TODO(), bson.M{})
+	if err != nil {
+		panic(err)
+	}
+
+	if err = cursor.All(context.TODO(), &export.Edges); err != nil {
+		panic(err)
+	}
+
+	cursor, err = ms.tracks.Find(context.TODO(), bson.M{})
+	if err != nil {
+		panic(err)
+	}
+
+	if err = cursor.All(context.TODO(), &export.Tracks); err != nil {
+		panic(err)
+	}
+	return &export
+}
+
+func (ms *MongoStore) getPointsByIds(ids []int64, filter bson.M) []DbPoint {
+	var points []DbPoint
+
+	filter["id"] = bson.M{
+		"$in": ids,
+	}
+
+	log.Debugf("filter=%v", filter)
+
+	cursor, err := ms.points.Find(context.TODO(), filter)
+	if err != nil {
+		panic(err)
+	}
+
+	if err = cursor.All(context.TODO(), &points); err != nil {
+		panic(err)
+	}
+
+	/*
+		if len(ids) != len(points) {
+			panic(fmt.Errorf("inconsistent number of ids (%d) and fetched entries (%d)", len(ids), len(points)))
+		}
+	*/
+
+	return points
+}
+
+func (ms *MongoStore) updateSinglePoint(id int64, update bson.M) {
+
+	_, err := ms.points.UpdateOne(context.TODO(), bson.M{"id": id}, bson.M{"$set": update})
+	if err != nil {
+		panic(err)
+	}
 }
