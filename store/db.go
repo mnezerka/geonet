@@ -14,7 +14,7 @@ import (
 
 const NIL_ID = -1
 
-type DbExport struct {
+type DbContent struct {
 	Points []DbPoint `json:"points"`
 	Edges  []DbEdge  `json:"edges"`
 	Tracks []DbTrack `json:"tracks"`
@@ -75,15 +75,15 @@ func NewMongoStore(cfg *config.Configuration) *MongoStore {
 	var err error
 
 	uri := os.Getenv("MONGODB_URI")
-	log.Infof("connecting to %s", uri)
 	docs := "www.mongodb.com/docs/drivers/go/current/"
 	if uri == "" {
-
-		log.Debug("Set your 'MONGODB_URI' environment variable. " +
+		log.Error("Set your 'MONGODB_URI' environment variable. " +
 			"See: " + docs +
 			"usage-examples/#environment-variable")
 		os.Exit(1)
 	}
+
+	log.Infof("connecting to %s", uri)
 
 	ms.client, err = mongo.Connect(context.TODO(), options.Client().ApplyURI(uri))
 	if err != nil {
@@ -122,6 +122,10 @@ func NewMongoStore(cfg *config.Configuration) *MongoStore {
 	indexModels := []mongo.IndexModel{
 		{Keys: bson.M{"loc": "2dsphere"}}, // geospatial index
 		{Keys: bson.M{"id": 1}},
+		{Keys: bson.M{"begin": 1}},
+		{Keys: bson.M{"end": 1}},
+		{Keys: bson.M{"crossing": 1}},
+		{Keys: bson.M{"processed": 1}},
 	}
 
 	_, err = ms.points.Indexes().CreateMany(context.TODO(), indexModels)
@@ -129,6 +133,23 @@ func NewMongoStore(cfg *config.Configuration) *MongoStore {
 		panic(err)
 	}
 	log.Debug("points index created")
+
+	// create indexes on edges
+	indexModels = []mongo.IndexModel{
+		{Keys: bson.M{"id": 1}},
+	}
+
+	_, err = ms.edges.Indexes().CreateMany(context.TODO(), indexModels)
+	if err != nil {
+		panic(err)
+	}
+	log.Debug("edges index created")
+
+	_, err = ms.tracks.Indexes().CreateMany(context.TODO(), indexModels)
+	if err != nil {
+		panic(err)
+	}
+	log.Debug("tracks index created")
 
 	ms.lastTrackId = ms.GetMaxId(ms.tracks)
 	ms.lastPointId = ms.GetMaxId(ms.points)
@@ -207,9 +228,9 @@ func (ms *MongoStore) GetMeta() (DbMeta, error) {
 	return meta, nil
 }
 
-func (ms *MongoStore) Export() *DbExport {
+func (ms *MongoStore) Export() *DbContent {
 
-	var export DbExport
+	var export DbContent
 
 	cursor, err := ms.points.Find(context.TODO(), bson.M{})
 	if err != nil {
@@ -273,4 +294,40 @@ func (ms *MongoStore) updateSinglePoint(id int64, update bson.M) {
 	if err != nil {
 		panic(err)
 	}
+}
+
+func (ms *MongoStore) Import(in *DbContent) {
+
+	ms.Reset()
+
+	pointsI := make([]interface{}, len(in.Points))
+	for i, v := range in.Points {
+		pointsI[i] = v
+	}
+
+	_, err := ms.points.InsertMany(context.TODO(), pointsI)
+	if err != nil {
+		panic(err)
+	}
+
+	edgesI := make([]interface{}, len(in.Edges))
+	for i, v := range in.Edges {
+		edgesI[i] = v
+	}
+
+	_, err = ms.edges.InsertMany(context.TODO(), edgesI)
+	if err != nil {
+		panic(err)
+	}
+
+	tracksI := make([]interface{}, len(in.Tracks))
+	for i, v := range in.Tracks {
+		tracksI[i] = v
+	}
+
+	_, err = ms.tracks.InsertMany(context.TODO(), tracksI)
+	if err != nil {
+		panic(err)
+	}
+
 }
