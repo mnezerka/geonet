@@ -64,7 +64,7 @@ func (ms *MongoStore) AddGpxPoint(point *gpx.GPXPoint, trackId int64, lastPointI
 			"loc": bson.M{
 				"$nearSphere": bson.M{
 					"$geometry":    cntr,
-					"$maxDistance": MAX_SPOT_DISTANCE, // distance in meters
+					"$maxDistance": ms.cfg.MatchMaxDistance, // distance in meters
 				},
 			},
 		})

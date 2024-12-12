@@ -1,14 +1,16 @@
 package cmd
 
 import (
+	"mnezerka/geonet/config"
+	"mnezerka/geonet/log"
+	"mnezerka/geonet/store"
+
 	"github.com/mnezerka/gpxcli/gpxutils"
 	"github.com/spf13/cobra"
 	"github.com/tkrajina/gpxgo/gpx"
-	"mnezerka/geonet/log"
-	"mnezerka/geonet/store"
 )
 
-const INTERPOLATION_DISTANCE = 30 // in meters
+var genCmdInterpolate bool
 
 var genCmd = &cobra.Command{
 	Use:   "gen",
@@ -16,8 +18,7 @@ var genCmd = &cobra.Command{
 	Args:  cobra.MinimumNArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
 
-		store := store.NewMongoStore()
-
+		store := store.NewMongoStore(&config.Cfg)
 		defer func() { store.Close() }()
 
 		// clean all data from previous executions
@@ -39,17 +40,17 @@ var genCmd = &cobra.Command{
 				return err
 			}
 
-			/*
-					log.Debugf("points raw: %d", len(points))
-					pointsInterpolated, err := gpxutils.InterpolateDistance(points, INTERPOLATION_DISTANCE)
-					if err != nil {
-						return err
-					}
+			log.Infof("points read from gpx file: %d", len(points))
 
-				log.Debugf("points interpolated: %d", len(pointsInterpolated))
-			*/
+			if genCmdInterpolate {
+				points, err = gpxutils.InterpolateDistance(points, float64(config.Cfg.InterpolationDistance))
+				if err != nil {
+					return err
+				}
 
-			//err = store.AddGpx(pointsInterpolated, args[file_ix])
+				log.Infof("points interpolated: %d", len(points))
+			}
+
 			err = store.AddGpx(points, args[file_ix])
 			if err != nil {
 				return err
@@ -61,5 +62,7 @@ var genCmd = &cobra.Command{
 }
 
 func init() {
+	genCmd.PersistentFlags().BoolVarP(&genCmdInterpolate, "interpolate", "i", false, "interpolate tracks before adding to geonet")
+
 	rootCmd.AddCommand(genCmd)
 }

@@ -4,6 +4,7 @@ import (
 	"context"
 	"os"
 
+	"mnezerka/geonet/config"
 	"mnezerka/geonet/log"
 
 	"go.mongodb.org/mongo-driver/bson"
@@ -11,7 +12,6 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-const MAX_SPOT_DISTANCE = 75
 const NIL_ID = -1
 
 type DbMeta struct {
@@ -59,10 +59,12 @@ type MongoStore struct {
 	edges       *mongo.Collection
 	lastPointId int64
 	lastTrackId int64
+	cfg         *config.Configuration
 }
 
-func NewMongoStore() *MongoStore {
+func NewMongoStore(cfg *config.Configuration) *MongoStore {
 	ms := MongoStore{}
+	ms.cfg = cfg
 
 	var err error
 

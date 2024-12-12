@@ -6,15 +6,18 @@ import (
 	"os"
 	"text/template"
 
-	"github.com/spf13/cobra"
+	"mnezerka/geonet/config"
 	"mnezerka/geonet/log"
 	"mnezerka/geonet/store"
+
+	"github.com/spf13/cobra"
 )
 
 type mapData struct {
-	Title   string
-	Meta    string
-	GeoJson string
+	Title          string
+	Meta           string
+	GeoJson        string
+	UseTrackColors bool
 }
 
 var showCmd = &cobra.Command{
@@ -22,8 +25,7 @@ var showCmd = &cobra.Command{
 	Short: "Visualise geonet",
 	RunE: func(cmd *cobra.Command, args []string) error {
 
-		store := store.NewMongoStore()
-
+		store := store.NewMongoStore(&config.Cfg)
 		defer func() { store.Close() }()
 
 		log.Info("visualisation of geonet")
@@ -59,9 +61,10 @@ var showCmd = &cobra.Command{
 		}
 
 		data := mapData{
-			Title:   "GeoNet",
-			Meta:    string(metaJson),
-			GeoJson: string(rawJSON),
+			Title:          "GeoNet",
+			Meta:           string(metaJson),
+			GeoJson:        string(rawJSON),
+			UseTrackColors: config.Cfg.ShowTrackColors,
 		}
 
 		err = tmpl.Execute(os.Stdout, data)

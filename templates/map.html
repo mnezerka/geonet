@@ -31,6 +31,7 @@
     <script>
         const geojson={{ .GeoJson }}
         const meta={{ .Meta }}
+        const useTrackColors ={{ .UseTrackColors }}
     </script>
     <script>
 
@@ -108,6 +109,11 @@
         };
 
         const getColorForTracks = function(tracks) {
+
+            if (!useTrackColors) {
+                return 'red'
+            }
+
             if (tracks.length == 0) {
                 return
             }
@@ -124,32 +130,6 @@
 
         // executed for each geojson feature (point, linestring, etc...)
         const styleFunc = function(feature) {
-
-            /*
-            if (feature.properties.track !== undefined) {
-                let tstyle = {
-                    opacity: 0.3
-                }
-                switch (feature.properties.track) {
-                    case 0: tstyle.color = "#ff0000"; break;
-                    case 1: tstyle.color = "#0000ff"; break;
-                }
-
-                return tstyle
-            }
-
-            if (feature.properties.edge !== undefined) {
-                let tstyle = {
-                    weight: 1
-                }
-
-                if (feature.properties.q !== undefined) {
-                    tstyle.weight = 1 + feature.properties.q * 0.2
-                    //tstyle.color = generateHeatmapColor(feature.properties.q, 1, 200)
-                }
-                return tstyle
-            }
-            */
 
             if (feature.geometry.type === 'LineString') {
                 let tstyle = {
@@ -179,43 +159,6 @@
         const pointToLayerFunc = function(feature, latlng) {
             opts = {}
             Object.assign(opts, geojsonMarkerOptions);
-
-            /*
-            if (feature.properties.cluster !== undefined) {
-                opts.color = clusterColors[feature.properties.cluster % clusterColors.length]
-                opts.fillColor = clusterColors[feature.properties.cluster % clusterColors.length]
-            }
-
-            switch (feature.properties.track) {
-                case 0:
-                    opts.fillColor = "#ff0000"
-                    opts.radius = 3
-                    break;
-                case 1:
-                    opts.fillColor = "#0000ff"
-                    opts.radius = 3
-                    break;
-            }
-            */
-
-            /*
-            if (feature.properties.spot !== undefined) {
-                    opts.fillColor = 'red'
-                    opts.radius = 3
-                if (feature.properties.q !== undefined) {
-                    opts.radius = 5 + feature.properties.q * 2
-                }
-            }
-            */
-
-            // if point represents crossing of tracks
-            /*
-            if (feature.properties.crossing === true) {
-                    opts.fillColor = 'red'
-                    opts.radius = 10 
-            }
-            */
- 
             return L.circleMarker(latlng, opts);
         }
 
