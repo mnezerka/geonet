@@ -66,6 +66,12 @@ func Debugf(format string, args ...interface{}) {
 	}
 }
 
+func Error(str string) {
+	if verbosity <= LOG_LEVEL_ERROR {
+		fmt.Fprint(os.Stderr, str+"\n")
+	}
+}
+
 func WithError(err error) {
 	fmt.Fprintf(os.Stderr, "%s", err)
 }
