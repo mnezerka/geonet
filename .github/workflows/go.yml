@@ -15,7 +15,7 @@ jobs:
     - name: Set up Go
       uses: actions/setup-go@v3
       with:
-        go-version: 1.18
+        go-version: 1.21
 
     - name: Build
       run: go build -v
@@ -23,12 +23,12 @@ jobs:
     - name: Test
       run: go test -v ./...
 
-    - name: Generate Cases 
-      if: ${{ env.DEPLOY }}
-      run: ./geonet cases
-
-    - name: Publish Cases to GH Pages
-      if: ${{ env.DEPLOY }}
-      uses: JamesIves/github-pages-deploy-action@v4
-      with:
-        folder: public # The folder the action should deploy.
+#    - name: Generate Cases 
+#      if: ${{ env.DEPLOY }}
+#      run: ./geonet cases
+#
+#    - name: Publish Cases to GH Pages
+#      if: ${{ env.DEPLOY }}
+#      uses: JamesIves/github-pages-deploy-action@v4
+#      with:
+#        folder: public # The folder the action should deploy.
