@@ -50,8 +50,13 @@
         function track_id_to_track_name(id) {
             if (meta.tracks !== undefined) {
                 for (let i = 0; i < meta.tracks.length; i++) {
-                    if (meta.tracks[i].id == id) {
-                        return meta.tracks[i].id + ":" + meta.tracks[i].name
+                    let t = meta.tracks[i]
+                    if (t.id == id) {
+                        let result = t.id + ":";
+                        if (t.meta.url) { result += '<a href="' + t.meta.url + '">'; }
+                        result += t.meta.title
+                        if (t.meta.url) { result += '</a>'; }
+                        return result
                         break;
                     }
                 }
