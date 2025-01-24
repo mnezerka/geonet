@@ -4,6 +4,7 @@ import (
 	"mnezerka/geonet/config"
 	"mnezerka/geonet/log"
 	"mnezerka/geonet/store"
+	"mnezerka/geonet/tracks"
 
 	"github.com/mnezerka/gpxcli/gpxutils"
 	"github.com/spf13/cobra"
@@ -51,7 +52,11 @@ var genCmd = &cobra.Command{
 				log.Infof("points interpolated: %d", len(points))
 			}
 
-			err = store.AddGpx(points, args[file_ix])
+			// get track meta
+			meta, err := tracks.ReadTrackMeta(args[file_ix])
+			log.Infof("track meta: %v", meta)
+
+			err = store.AddGpx(points, meta)
 			if err != nil {
 				return err
 			}

@@ -7,21 +7,21 @@ import (
 	"strings"
 
 	"mnezerka/geonet/log"
+	"mnezerka/geonet/tracks"
 
 	"github.com/tkrajina/gpxgo/gpx"
 	"go.mongodb.org/mongo-driver/bson"
 )
 
-func (ms *MongoStore) AddGpx(points []gpx.GPXPoint, filePath string) error {
+func (ms *MongoStore) AddGpx(points []gpx.GPXPoint, meta tracks.TrackMeta) error {
 
-	log.Infof("adding %s to the mongodb store", filePath)
+	log.Infof("adding %s to the mongodb store", meta.Title)
 
 	var lastPointId int64 = NIL_ID
 
 	newTrack := DbTrack{
-		Id:       ms.GenTrackId(),
-		Name:     filePath,
-		FilePath: filePath,
+		Id:   ms.GenTrackId(),
+		Meta: meta,
 	}
 
 	_, err := ms.tracks.InsertOne(context.TODO(), newTrack)

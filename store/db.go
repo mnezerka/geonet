@@ -6,6 +6,7 @@ import (
 
 	"mnezerka/geonet/config"
 	"mnezerka/geonet/log"
+	"mnezerka/geonet/tracks"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -29,9 +30,8 @@ type DbItem struct {
 }
 
 type DbTrack struct {
-	Id       int64  `json:"id" bson:"id"`
-	Name     string `json:"name" bson:"name"`
-	FilePath string `json:"filepath" bson:"filepath"`
+	Id   int64            `json:"id" bson:"id"`
+	Meta tracks.TrackMeta `json:"meta" bson:"meta"`
 }
 
 type GeoJsonGeometry struct {
