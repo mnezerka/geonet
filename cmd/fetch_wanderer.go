@@ -58,7 +58,7 @@ var fetchWandererCmd = &cobra.Command{
 
 			log.Infof("post %d '%s' (%d tracks)", i, m[i].Title, len(m[i].Tracks))
 			for j := 0; j < len(m[i].Tracks); j++ {
-				tracks.StoreTrack(&m[i], &m[i].Tracks[j], fetchWandererCmdDir, fetchWandererCmdForce)
+				tracks.WandererStoreTrack(&m[i], &m[i].Tracks[j], fetchWandererCmdDir, fetchWandererCmdForce)
 			}
 		}
 
