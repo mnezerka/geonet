@@ -53,12 +53,13 @@ func WandererReadMediaIndexFromFileSystem(filePath string) ([]WandererPost, erro
 	return result, err
 }
 
-func WandererStoreTrackMeta(post *WandererPost, track *WandererTrack, dir string, force bool) error {
+func WandererStoreTrackMeta(post *WandererPost, track *WandererTrack, sourceUrl string, dir string, force bool) error {
 
 	fileName := utils.ConvertToSafeFilename(track.Url)
 	filePath := filepath.Join(dir, fileName)
 
-	log.Infof("  track file name      : %s", filePath)
+	log.Infof("  track file name      :%s", filePath)
+	log.Infof("  source url::%s", sourceUrl)
 
 	// check if file exists in not-forced mode
 	if !force {
@@ -78,29 +79,24 @@ func WandererStoreTrackMeta(post *WandererPost, track *WandererTrack, dir string
 	// write file to the file system
 	file, err := os.Create(filePath)
 	if err != nil {
-		return fmt.Errorf("Error creating the file: %s", err)
+		return fmt.Errorf("error creating the file: %s", err)
 	}
 	defer file.Close()
 
 	_, err = io.Copy(file, resp.Body)
 	if err != nil {
-		return fmt.Errorf("Error saving the file: %s", err)
+		return fmt.Errorf("error saving the file: %s", err)
 	}
 
 	// update metadata
 	t := NewTrack(filePath)
-	t.Meta.SourceId = fileName
-	t.Meta.Url = post.Url
-	t.Meta.Creators = append(t.Meta.Creators, "wanderer")
-
-	// try to get title from the track data
-	title := t.GetTitleFromContent()
-
-	if len(title) > 0 {
-		t.Meta.Title = post.Title + " (" + title + ")"
-	} else {
-		t.Meta.Title = post.Title + " (" + utils.GetBasename(fileName) + ")"
-	}
+	t.Meta.TrackId = fileName
+	t.Meta.TrackUrl = track.Url
+	t.Meta.TrackTitle = t.GetTitleFromContent()
+	t.Meta.PostTitle = post.Title
+	t.Meta.PostUrl = post.Url
+	t.Meta.SourceType = "wanderer"
+	t.Meta.SourceUrl = sourceUrl
 
 	t.WriteMeta()
 

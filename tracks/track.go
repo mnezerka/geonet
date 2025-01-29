@@ -44,13 +44,16 @@ func (t *Track) ReadMeta() {
 	defer jsonFile.Close()
 
 	err = json.NewDecoder(jsonFile).Decode(&t.Meta)
+	if err != nil {
+		panic(err)
+	}
 }
 
 func (t *Track) WriteMeta() {
 
 	file, err := os.Create(t.FilePathMeta)
 	if err != nil {
-		panic(fmt.Errorf("Error creating the meta file: %s", err))
+		panic(fmt.Errorf("error creating the meta file: %s", err))
 	}
 	defer file.Close()
 

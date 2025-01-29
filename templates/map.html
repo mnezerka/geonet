@@ -53,9 +53,12 @@
                     let t = meta.tracks[i]
                     if (t.id == id) {
                         let result = t.id + ":";
-                        if (t.meta.url) { result += '<a href="' + t.meta.url + '">'; }
-                        result += t.meta.title
-                        if (t.meta.url) { result += '</a>'; }
+                        if (t.meta.post_url) { result += '<a href="' + t.meta.post_url + '">'; }
+                        result += t.meta.post_title
+                        if (t.meta.track_title) {
+                            result += ' (' + t.meta.track_title + ')';
+                        }
+                        if (t.meta.post_url) { result += '</a>'; }
                         return result
                         break;
                     }

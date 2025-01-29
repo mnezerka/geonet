@@ -15,7 +15,7 @@ import (
 
 func (ms *MongoStore) AddGpx(track *tracks.Track) error {
 
-	log.Infof("adding %s to the mongodb store", track.Meta.Title)
+	log.Infof("adding %s to the mongodb store", track.Meta.PostTitle)
 
 	var lastPointId int64 = NIL_ID
 
