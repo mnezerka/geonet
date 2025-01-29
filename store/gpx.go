@@ -13,15 +13,15 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 )
 
-func (ms *MongoStore) AddGpx(points []gpx.GPXPoint, meta tracks.TrackMeta) error {
+func (ms *MongoStore) AddGpx(track *tracks.Track) error {
 
-	log.Infof("adding %s to the mongodb store", meta.Title)
+	log.Infof("adding %s to the mongodb store", track.Meta.Title)
 
 	var lastPointId int64 = NIL_ID
 
 	newTrack := DbTrack{
 		Id:   ms.GenTrackId(),
-		Meta: meta,
+		Meta: track.Meta,
 	}
 
 	_, err := ms.tracks.InsertOne(context.TODO(), newTrack)
@@ -31,14 +31,14 @@ func (ms *MongoStore) AddGpx(points []gpx.GPXPoint, meta tracks.TrackMeta) error
 
 	log.Debugf("registered track %d", newTrack.Id)
 
-	for i := 0; i < len(points); i++ {
-		point := points[i]
+	for i := 0; i < len(track.Points); i++ {
+		point := track.Points[i]
 		lastPointId, err = ms.AddGpxPoint(
 			&point,
-			newTrack.Id,        // id of the current track
-			lastPointId,        // id of the previous point
-			i == 0,             // is point beginning of the track?
-			i == len(points)-1, // is point end of the track?
+			newTrack.Id,              // id of the current track
+			lastPointId,              // id of the previous point
+			i == 0,                   // is point beginning of the track?
+			i == len(track.Points)-1, // is point end of the track?
 		)
 		if err != nil {
 			return err

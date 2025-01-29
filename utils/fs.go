@@ -66,3 +66,12 @@ func FileExists(path string) bool {
 	}
 	return true
 }
+
+func RemoveExtension(input string) string {
+	ext := filepath.Ext(input)
+	return strings.TrimSuffix(input, ext)
+}
+
+func GetBasename(path string) string {
+	return filepath.Base(path)
+}

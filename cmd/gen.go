@@ -6,9 +6,7 @@ import (
 	"mnezerka/geonet/store"
 	"mnezerka/geonet/tracks"
 
-	"github.com/mnezerka/gpxcli/gpxutils"
 	"github.com/spf13/cobra"
-	"github.com/tkrajina/gpxgo/gpx"
 )
 
 var genCmdInterpolate bool
@@ -31,32 +29,13 @@ var genCmd = &cobra.Command{
 
 			log.Infof("processing %s", args[file_ix])
 
-			gpxFile, err := gpx.ParseFile(args[file_ix])
-			if err != nil {
-				return err
-			}
-
-			points, err := gpxutils.GpxFileToPoints(gpxFile)
-			if err != nil {
-				return err
-			}
-
-			log.Infof("points read from gpx file: %d", len(points))
+			t := tracks.NewTrack(args[file_ix])
 
 			if genCmdInterpolate {
-				points, err = gpxutils.InterpolateDistance(points, float64(config.Cfg.InterpolationDistance))
-				if err != nil {
-					return err
-				}
-
-				log.Infof("points interpolated: %d", len(points))
+				t.InterpolateDistance(config.Cfg.InterpolationDistance)
 			}
 
-			// get track meta
-			meta, err := tracks.ReadTrackMeta(args[file_ix])
-			log.Infof("track meta: %v", meta)
-
-			err = store.AddGpx(points, meta)
+			err := store.AddGpx(t)
 			if err != nil {
 				return err
 			}

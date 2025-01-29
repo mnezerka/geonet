@@ -53,23 +53,12 @@ func WandererReadMediaIndexFromFileSystem(filePath string) ([]WandererPost, erro
 	return result, err
 }
 
-func WandererStoreTrack(post *WandererPost, track *WandererTrack, dir string, force bool) error {
+func WandererStoreTrackMeta(post *WandererPost, track *WandererTrack, dir string, force bool) error {
 
 	fileName := utils.ConvertToSafeFilename(track.Url)
 	filePath := filepath.Join(dir, fileName)
 
-	fileNameMeta := utils.SetExtension(fileName, "json")
-	filePathMeta := filepath.Join(dir, fileNameMeta)
-
 	log.Infof("  track file name      : %s", filePath)
-	log.Infof("  track metad file name: %s", filePathMeta)
-
-	// Fetch the file from the URL
-	resp, err := http.Get(track.Url)
-	if err != nil {
-		return err
-	}
-	defer resp.Body.Close()
 
 	// check if file exists in not-forced mode
 	if !force {
@@ -79,44 +68,41 @@ func WandererStoreTrack(post *WandererPost, track *WandererTrack, dir string, fo
 		}
 	}
 
-	// -------------------------------------------------------------
-	// 1. Create the track content file
+	// fetch the gpx file from the URL
+	resp, err := http.Get(track.Url)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
 
+	// write file to the file system
 	file, err := os.Create(filePath)
 	if err != nil {
 		return fmt.Errorf("Error creating the file: %s", err)
 	}
 	defer file.Close()
 
-	// Copy the content from the response body to the local file
 	_, err = io.Copy(file, resp.Body)
 	if err != nil {
 		return fmt.Errorf("Error saving the file: %s", err)
 	}
 
-	// -------------------------------------------------------------
-	// 2. Create the track meta file
-	file, err = os.Create(filePathMeta)
-	if err != nil {
-		return fmt.Errorf("Error creating the meta file: %s", err)
-	}
-	defer file.Close()
+	// update metadata
+	t := NewTrack(filePath)
+	t.Meta.SourceId = fileName
+	t.Meta.Url = post.Url
+	t.Meta.Creators = append(t.Meta.Creators, "wanderer")
 
-	meta := TrackMeta{
-		SourceId: fileName,
-		Title:    post.Title + " (" + fileName + ")",
-		Url:      post.Url,
-	}
+	// try to get title from the track data
+	title := t.GetTitleFromContent()
 
-	jsonData, err := json.MarshalIndent(meta, "", "  ")
-	if err != nil {
-		return err
+	if len(title) > 0 {
+		t.Meta.Title = post.Title + " (" + title + ")"
+	} else {
+		t.Meta.Title = post.Title + " (" + utils.GetBasename(fileName) + ")"
 	}
 
-	_, err = file.Write(jsonData)
-	if err != nil {
-		return err
-	}
+	t.WriteMeta()
 
 	return nil
 }
