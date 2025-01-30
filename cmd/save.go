@@ -11,9 +11,9 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var exportCmd = &cobra.Command{
-	Use:   "export",
-	Short: "Export complete geonet",
+var saveCmd = &cobra.Command{
+	Use:   "save",
+	Short: "Save geonet to filesystem (complete image of database)",
 	RunE: func(cmd *cobra.Command, args []string) error {
 
 		store := store.NewMongoStore(&config.Cfg)
@@ -36,5 +36,5 @@ var exportCmd = &cobra.Command{
 }
 
 func init() {
-	rootCmd.AddCommand(exportCmd)
+	rootCmd.AddCommand(saveCmd)
 }
