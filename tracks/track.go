@@ -27,6 +27,10 @@ func NewTrack(filePath string) *Track {
 
 	t.ReadMeta()
 
+	// compute fields if not read from meta
+	if len(t.Meta.TrackTitle) == 0 {
+		t.Meta.TrackTitle = t.GetTitleFromContent()
+	}
 	return &t
 }
 
@@ -111,6 +115,11 @@ func (t *Track) GetTitleFromContent() string {
 		if len(result) == 0 {
 			result = t.gpxFile.Name
 		}
+	}
+
+	// if name was not inserted into gpx file, use filename
+	if len(result) == 0 {
+		result = utils.GetBasename(t.FilePath)
 	}
 
 	return result
