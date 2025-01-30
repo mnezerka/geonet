@@ -63,6 +63,9 @@ type MongoStore struct {
 	tracks      *mongo.Collection
 	points      *mongo.Collection
 	edges       *mongo.Collection
+	tracksTmp   *mongo.Collection
+	pointsTmp   *mongo.Collection
+	edgesTmp    *mongo.Collection
 	lastPointId int64
 	lastTrackId int64
 	cfg         *config.Configuration
@@ -100,23 +103,14 @@ func NewMongoStore(cfg *config.Configuration) *MongoStore {
 
 	ms.db = ms.client.Database("geonet")
 
-	err = ms.db.CreateCollection(context.TODO(), "tracks")
-	if err != nil {
-		panic(err)
-	}
-	ms.tracks = ms.db.Collection("tracks")
+	ms.tracks = createCollection(ms.db, "tracks")
+	ms.tracksTmp = createCollection(ms.db, "tracks_tmp")
 
-	err = ms.db.CreateCollection(context.TODO(), "points")
-	if err != nil {
-		panic(err)
-	}
-	ms.points = ms.db.Collection("points")
+	ms.points = createCollection(ms.db, "points")
+	ms.pointsTmp = createCollection(ms.db, "points_tmp")
 
-	err = ms.db.CreateCollection(context.TODO(), "edges")
-	if err != nil {
-		panic(err)
-	}
-	ms.edges = ms.db.Collection("edges")
+	ms.edges = createCollection(ms.db, "edges")
+	ms.edgesTmp = createCollection(ms.db, "edges_tmp")
 
 	// create indexes on points
 	indexModels := []mongo.IndexModel{
@@ -330,4 +324,42 @@ func (ms *MongoStore) Import(in *DbContent) {
 		panic(err)
 	}
 
+}
+
+func (ms *MongoStore) StashPush() {
+	_, err := ms.points.Aggregate(context.TODO(), bson.A{bson.M{"$out": "points_tmp"}})
+	if err != nil {
+		panic(err)
+	}
+	_, err = ms.edges.Aggregate(context.TODO(), bson.A{bson.M{"$out": "edges_tmp"}})
+	if err != nil {
+		panic(err)
+	}
+	_, err = ms.tracks.Aggregate(context.TODO(), bson.A{bson.M{"$out": "tracks_tmp"}})
+	if err != nil {
+		panic(err)
+	}
+}
+
+func (ms *MongoStore) StashPop() {
+	_, err := ms.pointsTmp.Aggregate(context.TODO(), bson.A{bson.M{"$out": "points"}})
+	if err != nil {
+		panic(err)
+	}
+	_, err = ms.edgesTmp.Aggregate(context.TODO(), bson.A{bson.M{"$out": "edges"}})
+	if err != nil {
+		panic(err)
+	}
+	_, err = ms.tracksTmp.Aggregate(context.TODO(), bson.A{bson.M{"$out": "tracks"}})
+	if err != nil {
+		panic(err)
+	}
+}
+
+func createCollection(db *mongo.Database, name string) *mongo.Collection {
+	err := db.CreateCollection(context.TODO(), name)
+	if err != nil {
+		panic(err)
+	}
+	return db.Collection(name)
 }

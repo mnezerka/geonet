@@ -10,7 +10,7 @@ import (
 
 var simplifyCmd = &cobra.Command{
 	Use:   "simplify",
-	Short: "Simplify geonet in database)",
+	Short: "Simplify geonet in directly in database",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		store := store.NewMongoStore(&config.Cfg)
 		defer func() { store.Close() }()
