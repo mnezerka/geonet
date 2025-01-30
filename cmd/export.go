@@ -3,6 +3,7 @@ package cmd
 import (
 	"encoding/json"
 	"fmt"
+	geojson "github.com/paulmach/go.geojson"
 	"github.com/spf13/cobra"
 	"mnezerka/geonet/config"
 	"mnezerka/geonet/log"
@@ -12,7 +13,7 @@ import (
 var exportCmdSimplify bool
 
 type exportBundle struct {
-	GeoJson string
+	GeoJson *geojson.FeatureCollection
 	Meta    store.DbMeta
 }
 
@@ -33,28 +34,18 @@ var exportCmd = &cobra.Command{
 		}
 
 		var err error
+		export := exportBundle{}
 
 		// 1. ---------------- points, edges -> geojson
-		featureCollection, err := store.ToGeoJson()
-		if err != nil {
-			return err
-		}
-
-		// collection -> json
-		geoJsonData, err := featureCollection.MarshalJSON()
+		export.GeoJson, err = store.ToGeoJson()
 		if err != nil {
 			return err
 		}
 
 		// 2. ---------------- meta data (e.g. tracks)
-		meta, err := store.GetMeta()
+		export.Meta, err = store.GetMeta()
 		if err != nil {
 			return err
-		}
-
-		export := exportBundle{
-			GeoJson: string(geoJsonData),
-			Meta:    meta,
 		}
 
 		sJson, err := json.MarshalIndent(export, "", " ")
