@@ -77,5 +77,10 @@ var showCmd = &cobra.Command{
 }
 
 func init() {
+
+	showCmd.PersistentFlags().BoolVarP(&config.Cfg.ShowPoints, "points", "p", config.Cfg.ShowPoints, "render individual points")
+	showCmd.PersistentFlags().BoolVarP(&config.Cfg.ShowEdges, "edges", "e", config.Cfg.ShowEdges, "render edges")
+	showCmd.PersistentFlags().BoolVarP(&config.Cfg.ShowTrackColors, "colors", "c", config.Cfg.ShowTrackColors, "use colors for tracks")
+
 	rootCmd.AddCommand(showCmd)
 }
