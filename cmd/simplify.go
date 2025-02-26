@@ -22,5 +22,6 @@ var simplifyCmd = &cobra.Command{
 }
 
 func init() {
+	simplifyCmd.PersistentFlags().Int64Var(&config.Cfg.SimplifyMinDistance, "sim-min-dist", config.Cfg.MatchMaxDistance, "minimal distance between points for simplification")
 	rootCmd.AddCommand(simplifyCmd)
 }
