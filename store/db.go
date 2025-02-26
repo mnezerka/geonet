@@ -20,9 +20,10 @@ type DbLogMsg struct {
 }
 
 type DbContent struct {
-	Points []DbPoint `json:"points"`
-	Edges  []DbEdge  `json:"edges"`
-	Tracks []DbTrack `json:"tracks"`
+	Points []DbPoint  `json:"points"`
+	Edges  []DbEdge   `json:"edges"`
+	Tracks []DbTrack  `json:"tracks"`
+	Log    []DbLogMsg `json:"log"`
 }
 
 type DbMeta struct {
@@ -284,6 +285,16 @@ func (ms *MongoStore) Export() *DbContent {
 	if err = cursor.All(context.TODO(), &export.Tracks); err != nil {
 		panic(err)
 	}
+
+	cursor, err = ms.log.Find(context.TODO(), bson.M{})
+	if err != nil {
+		panic(err)
+	}
+
+	if err = cursor.All(context.TODO(), &export.Log); err != nil {
+		panic(err)
+	}
+
 	return &export
 }
 
@@ -352,6 +363,16 @@ func (ms *MongoStore) Import(in *DbContent) {
 	}
 
 	_, err = ms.tracks.InsertMany(context.TODO(), tracksI)
+	if err != nil {
+		panic(err)
+	}
+
+	logI := make([]interface{}, len(in.Log))
+	for i, v := range in.Log {
+		logI[i] = v
+	}
+
+	_, err = ms.log.InsertMany(context.TODO(), logI)
 	if err != nil {
 		panic(err)
 	}
