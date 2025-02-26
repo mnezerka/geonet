@@ -1,5 +1,9 @@
 package config
 
+import (
+	"fmt"
+)
+
 type Configuration struct {
 	SimplifyMinDistance   int64 // in meters
 	MatchMaxDistance      int64 // in meters
@@ -7,6 +11,14 @@ type Configuration struct {
 	ShowPoints            bool  // render points to map
 	ShowEdges             bool  // render edges to map
 	ShowTrackColors       bool  // render tracks with different colors
+}
+
+func (c *Configuration) ToString() string {
+	return fmt.Sprintf("int-dist: %d, simplify-min-dist: %d, match-max-dist: %d",
+		c.InterpolationDistance,
+		c.SimplifyMinDistance,
+		c.MatchMaxDistance,
+	)
 }
 
 var Cfg = Configuration{
