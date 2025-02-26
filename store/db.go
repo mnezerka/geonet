@@ -15,6 +15,10 @@ import (
 
 const NIL_ID = -1
 
+type DbLogMsg struct {
+	Msg string `json:"msg" bson:"msg"`
+}
+
 type DbContent struct {
 	Points []DbPoint `json:"points"`
 	Edges  []DbEdge  `json:"edges"`
@@ -66,6 +70,7 @@ type MongoStore struct {
 	tracksTmp   *mongo.Collection
 	pointsTmp   *mongo.Collection
 	edgesTmp    *mongo.Collection
+	log         *mongo.Collection
 	lastPointId int64
 	lastTrackId int64
 	cfg         *config.Configuration
@@ -111,6 +116,8 @@ func NewMongoStore(cfg *config.Configuration) *MongoStore {
 
 	ms.edges = createCollection(ms.db, "edges")
 	ms.edgesTmp = createCollection(ms.db, "edges_tmp")
+
+	ms.log = createCollection(ms.db, "log")
 
 	// create indexes on points
 	indexModels := []mongo.IndexModel{
@@ -160,6 +167,14 @@ func (ms *MongoStore) Close() {
 	}
 }
 
+func (ms *MongoStore) Log(msg string) {
+
+	_, err := ms.log.InsertOne(context.TODO(), bson.M{"msg": msg})
+	if err != nil {
+		panic(err)
+	}
+}
+
 func (ms *MongoStore) GetMaxId(collection *mongo.Collection) int64 {
 	opts := options.Find().SetSort(bson.M{"id": NIL_ID}).SetLimit(1)
 	cursor, err := collection.Find(context.TODO(), bson.D{}, opts)
@@ -193,6 +208,7 @@ func (ms *MongoStore) Reset() {
 	ms.tracks.DeleteMany(context.TODO(), bson.M{})
 	ms.points.DeleteMany(context.TODO(), bson.M{})
 	ms.edges.DeleteMany(context.TODO(), bson.M{})
+	ms.log.DeleteMany(context.TODO(), bson.M{})
 	ms.lastPointId = 0
 	ms.lastTrackId = 0
 }
@@ -220,6 +236,22 @@ func (ms *MongoStore) GetMeta() (DbMeta, error) {
 	}
 
 	return meta, nil
+}
+
+func (ms *MongoStore) GetLog() ([]DbLogMsg, error) {
+
+	var result []DbLogMsg
+
+	cursor, err := ms.log.Find(context.TODO(), bson.D{})
+	if err != nil {
+		return result, err
+	}
+
+	if err = cursor.All(context.TODO(), &result); err != nil {
+		return result, err
+	}
+
+	return result, nil
 }
 
 func (ms *MongoStore) Export() *DbContent {

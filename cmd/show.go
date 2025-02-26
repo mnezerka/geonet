@@ -1,75 +1,48 @@
 package cmd
 
 import (
-	//"fmt"
-	"encoding/json"
-	"os"
-	"text/template"
-
+	"fmt"
 	"mnezerka/geonet/config"
-	"mnezerka/geonet/log"
 	"mnezerka/geonet/store"
+	"os"
+	"text/tabwriter"
 
 	"github.com/spf13/cobra"
 )
 
-type mapData struct {
-	Title          string
-	Meta           string
-	GeoJson        string
-	UseTrackColors bool
-}
-
 var showCmd = &cobra.Command{
 	Use:   "show",
-	Short: "Visualise geonet",
+	Short: "Show information of geonet",
 	RunE: func(cmd *cobra.Command, args []string) error {
 
 		store := store.NewMongoStore(&config.Cfg)
 		defer func() { store.Close() }()
-
-		log.Info("visualisation of geonet")
-
-		collection, err := store.ToGeoJson()
-		if err != nil {
-			return err
-		}
 
 		meta, err := store.GetMeta()
 		if err != nil {
 			return err
 		}
 
-		// meta - json
-		metaJson, err := json.Marshal(meta)
+		logLines, err := store.GetLog()
 		if err != nil {
 			return err
 		}
 
-		// collection -> json
-		rawJSON, err := collection.MarshalJSON()
-		if err != nil {
-			return err
+		fmt.Printf("tracks total: %d\n", len(meta.Tracks))
+
+		fmt.Println("----------------- tracks --------------")
+
+		w := tabwriter.NewWriter(os.Stdout, 1, 1, 1, ':', 0)
+
+		for i := 0; i < len(meta.Tracks); i++ {
+			t := meta.Tracks[i]
+			fmt.Fprintf(w, "%d\t%s\n", t.Id, t.Meta.TrackTitle)
 		}
+		w.Flush()
 
-		var tmplFile = "templates/map.html"
-
-		// Load the template file
-		tmpl, err := template.ParseFiles(tmplFile)
-		if err != nil {
-			return err
-		}
-
-		data := mapData{
-			Title:          "GeoNet",
-			Meta:           string(metaJson),
-			GeoJson:        string(rawJSON),
-			UseTrackColors: config.Cfg.ShowTrackColors,
-		}
-
-		err = tmpl.Execute(os.Stdout, data)
-		if err != nil {
-			return (err)
+		fmt.Println("----------------- log -----------------")
+		for i := 0; i < len(logLines); i++ {
+			fmt.Println(logLines[i].Msg)
 		}
 
 		return nil
@@ -77,10 +50,6 @@ var showCmd = &cobra.Command{
 }
 
 func init() {
-
-	showCmd.PersistentFlags().BoolVarP(&config.Cfg.ShowPoints, "points", "p", config.Cfg.ShowPoints, "render individual points")
-	showCmd.PersistentFlags().BoolVarP(&config.Cfg.ShowEdges, "edges", "e", config.Cfg.ShowEdges, "render edges")
-	showCmd.PersistentFlags().BoolVarP(&config.Cfg.ShowTrackColors, "colors", "c", config.Cfg.ShowTrackColors, "use colors for tracks")
 
 	rootCmd.AddCommand(showCmd)
 }

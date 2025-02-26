@@ -11,6 +11,7 @@ import (
 	"github.com/tkrajina/gpxgo/gpx"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
+	"mnezerka/geonet/config"
 )
 
 var freeNotProcessedPointsFilter bson.M = bson.M{
@@ -21,6 +22,11 @@ var freeNotProcessedPointsFilter bson.M = bson.M{
 }
 
 func (ms *MongoStore) Simplify() {
+
+	ms.Log(fmt.Sprintf("simplify cfg=(%s)",
+		config.Cfg.ToString(),
+	))
+
 	// reset all points to not processed state to be sure we start with clean setup
 	_, err := ms.points.UpdateMany(context.TODO(), bson.M{}, bson.M{"$set": bson.M{"processed": false}})
 	if err != nil {
