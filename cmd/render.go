@@ -18,10 +18,11 @@ type mapData struct {
 	Meta           string
 	GeoJson        string
 	UseTrackColors bool
+	Js             string
 }
 
-var showCmd = &cobra.Command{
-	Use:   "show",
+var renderCmd = &cobra.Command{
+	Use:   "render",
 	Short: "Visualise geonet",
 	RunE: func(cmd *cobra.Command, args []string) error {
 
@@ -60,11 +61,18 @@ var showCmd = &cobra.Command{
 			return err
 		}
 
+		// load js logic
+		jsContent, err := os.ReadFile("templates/map.js")
+		if err != nil {
+			return err
+		}
+
 		data := mapData{
 			Title:          "GeoNet",
 			Meta:           string(metaJson),
 			GeoJson:        string(rawJSON),
 			UseTrackColors: config.Cfg.ShowTrackColors,
+			Js:             string(jsContent),
 		}
 
 		err = tmpl.Execute(os.Stdout, data)
@@ -78,9 +86,9 @@ var showCmd = &cobra.Command{
 
 func init() {
 
-	showCmd.PersistentFlags().BoolVarP(&config.Cfg.ShowPoints, "points", "p", config.Cfg.ShowPoints, "render individual points")
-	showCmd.PersistentFlags().BoolVarP(&config.Cfg.ShowEdges, "edges", "e", config.Cfg.ShowEdges, "render edges")
-	showCmd.PersistentFlags().BoolVarP(&config.Cfg.ShowTrackColors, "colors", "c", config.Cfg.ShowTrackColors, "use colors for tracks")
+	renderCmd.PersistentFlags().BoolVarP(&config.Cfg.ShowPoints, "points", "p", config.Cfg.ShowPoints, "render individual points")
+	renderCmd.PersistentFlags().BoolVarP(&config.Cfg.ShowEdges, "edges", "e", config.Cfg.ShowEdges, "render edges")
+	renderCmd.PersistentFlags().BoolVarP(&config.Cfg.ShowTrackColors, "colors", "c", config.Cfg.ShowTrackColors, "use colors for tracks")
 
-	rootCmd.AddCommand(showCmd)
+	rootCmd.AddCommand(renderCmd)
 }

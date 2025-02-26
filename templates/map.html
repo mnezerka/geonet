@@ -23,6 +23,11 @@
             max-width: 100%;
             max-height: 100%;
         }
+
+        .track-info {
+            display: flex;
+            flex-direction: row;
+        }
     </style>
 </head>
 
@@ -34,170 +39,7 @@
         const useTrackColors ={{ .UseTrackColors }}
     </script>
     <script>
-
-        const clusterColors = [
-            'Blue',
-            'Green',
-            'Lime',
-            'Yellow',
-            'Orange',
-            'Pink',
-            'Violet',
-            'DarkOrange',
-            'Gold'
-        ]
-
-        function track_id_to_track_name(id) {
-            if (meta.tracks !== undefined) {
-                for (let i = 0; i < meta.tracks.length; i++) {
-                    let t = meta.tracks[i]
-                    if (t.id == id) {
-                        let result = t.id + ":";
-                        if (t.meta.post_url) { result += '<a href="' + t.meta.post_url + '">'; }
-                        result += t.meta.post_title
-                        if (t.meta.track_title) {
-                            result += ' (' + t.meta.track_title + ')';
-                        }
-                        if (t.meta.post_url) { result += '</a>'; }
-                        return result
-                        break;
-                    }
-                }
-            }
-            return 'track: ' + id
-        }
-
-        // enhance tracks of colors, titles, etc.
-        if (meta.tracks !== undefined) {
-            for (let i = 0; i < meta.tracks.length; i++) {
-                meta.tracks[i].color = clusterColors[i % clusterColors.length]
-            }
-        }
-
-        /*
-        function generateHeatmapColor(value, min, max) {
-            // Clamp the value between the min and max
-            value = Math.min(Math.max(value, min), max);
-
-            // Normalize the value between 0 and 1
-            var normalizedValue = (value - min) / (max - min);
-
-            // Interpolate between red and yellow
-            var red = 255;
-            var green = Math.round(255 * normalizedValue);
-            var blue = 0;
-
-            // Convert the RGB values to hexadecimal
-            var color = "#" + componentToHex(red) + componentToHex(green) + componentToHex(blue);
-
-            return color;
-        }
-        */
-
-        function componentToHex(c) {
-            var hex = c.toString(16);
-            return hex.length == 1 ? "0" + hex : hex;
-        }
-
-        const map = L.map('map').setView([51.505, -0.09], 13);
-
-        const tiles = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            maxZoom: 19,
-            attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-        }).addTo(map);
-
-
-        const geojsonMarkerOptions = {
-            radius: 5,
-            fillColor: "#fff969",
-            color: "#cfc939",
-            weight: 1,
-            opacity: 1,
-            fillOpacity: 0.8
-        };
-
-        const getColorForTracks = function(tracks) {
-
-            if (!useTrackColors) {
-                return 'red'
-            }
-
-            if (tracks.length == 0) {
-                return
-            }
-
-            let first = tracks[0]
-            if (meta.tracks) {
-                for (let i = 0; i < meta.tracks.length; i++) {
-                    if (meta.tracks[i].id == first) {
-                        return meta.tracks[i].color
-                    }
-                }
-            }
-        }
-
-        // executed for each geojson feature (point, linestring, etc...)
-        const styleFunc = function(feature) {
-
-            if (feature.geometry.type === 'LineString') {
-                let tstyle = {
-                    color: getColorForTracks(feature.properties.tracks),
-                }
-                return tstyle
-            }
-
-            if (feature.geometry.type === 'Point') {
-                let tstyle = {
-                    fillColor: getColorForTracks(feature.properties.tracks),
-                    radius: 5
-                }
-
-                if (feature.properties.crossing === true) {
-                    tstyle.fillColor = 'red'
-                    tstyle.radius = 10 
-                 }
- 
-                return tstyle
-            }
-
-            return {}
-        }
-
-        // this is executed only for points
-        const pointToLayerFunc = function(feature, latlng) {
-            opts = {}
-            Object.assign(opts, geojsonMarkerOptions);
-            return L.circleMarker(latlng, opts);
-        }
-
-        // this is executed for each geojson feature (point, linestring, etc.)
-        const onEachFeatureFunc = function (feature, latlng) {
-            let msg = '<p>';
-            if (feature.properties.id !== undefined) {
-                msg += feature.geometry.type + ' id: ' + feature.properties.id + '<br>'; 
-            }
-            if (feature.properties.tracks !== undefined) {
-                let tracks = feature.properties.tracks;
-                for (let i = 0; i < tracks.length; i++) {
-                    msg += track_id_to_track_name(tracks[i])
-                    msg += "<br>"
-                }
-            }
-            msg += '</p>'
-
-            latlng.bindPopup(msg);
-        }
-
-        matchesLayer = L.geoJson(
-            geojson,
-            {
-                style: styleFunc,
-                pointToLayer: pointToLayerFunc,
-                onEachFeature: onEachFeatureFunc
-            }).addTo(map);
-
-        map.fitBounds(matchesLayer.getBounds())
-
+        {{ .Js }}
     </script>
 </body>
 </html>
