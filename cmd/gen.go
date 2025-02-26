@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"fmt"
 	"mnezerka/geonet/config"
 	"mnezerka/geonet/log"
 	"mnezerka/geonet/store"
@@ -25,6 +26,10 @@ var genCmd = &cobra.Command{
 		store.Reset()
 
 		log.Infof("generating geonet from %v", args)
+		store.Log(fmt.Sprintf("generate cfg=(%s) flags=(%s)",
+			config.Cfg.ToString(),
+			fmt.Sprintf("interpolate: %v, limit: %d", genCmdInterpolate, genCmdLimit),
+		))
 
 		for file_ix := 0; file_ix < len(args); file_ix++ {
 
@@ -55,8 +60,8 @@ var genCmd = &cobra.Command{
 
 func init() {
 	genCmd.PersistentFlags().BoolVarP(&genCmdInterpolate, "interpolate", "i", false, "interpolate tracks before adding to geonet")
-	genCmd.PersistentFlags().Int64Var(&config.Cfg.InterpolationDistance, "int-dist", config.Cfg.InterpolationDistance, "distance for interpolation")
-	genCmd.PersistentFlags().Int64Var(&config.Cfg.MatchMaxDistance, "match-max-dist", config.Cfg.MatchMaxDistance, "maximal distance for matching new points against points in geonet")
+	genCmd.PersistentFlags().Int64Var(&config.Cfg.InterpolationDistance, "int-dist", config.Cfg.InterpolationDistance, "distance for interpolation in meters")
+	genCmd.PersistentFlags().Int64Var(&config.Cfg.MatchMaxDistance, "match-max-dist", config.Cfg.MatchMaxDistance, "maximal distance in meters for matching new points against points in geonet")
 	genCmd.PersistentFlags().IntVar(&genCmdLimit, "limit", -1, "max number of tracks to be processed")
 
 	rootCmd.AddCommand(genCmd)
