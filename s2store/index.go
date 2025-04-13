@@ -1,0 +1,133 @@
+package s2store
+
+import (
+	"sort"
+
+	"github.com/golang/geo/s1"
+	"github.com/golang/geo/s2"
+)
+
+type Location struct {
+	Id       int64
+	Name     string
+	Lat      float64
+	Lng      float64
+	Tracks   []int64
+	Count    int
+	Begin    bool
+	End      bool
+	Crossing bool
+}
+
+type NearestResult struct {
+	Location       *Location
+	DistanceMeters float64
+}
+
+/////////////////////////////////////////////////////////// SpatialIndex
+
+type SpatialIndex struct {
+	data  map[s2.CellID][]*Location
+	level int // S2 cell level for indexing
+	flat  map[int64]*Location
+}
+
+func NewSpatialIndex(level int) *SpatialIndex {
+	return &SpatialIndex{
+		data:  make(map[s2.CellID][]*Location),
+		level: level,
+		flat:  make(map[int64]*Location), // flat structure - mapping of Location Id -> Location object (optional attribute, not related to S2 library)
+	}
+}
+
+func (si *SpatialIndex) Add(loc *Location) {
+	cell := s2.CellIDFromLatLng(s2.LatLngFromDegrees(loc.Lat, loc.Lng)).Parent(si.level)
+	si.data[cell] = append(si.data[cell], loc)
+	si.flat[loc.Id] = loc
+}
+
+func (si *SpatialIndex) Nearest(lat, lng float64, radiusMeters float64) []NearestResult {
+	queryLatLng := s2.LatLngFromDegrees(lat, lng)
+	queryPoint := s2.PointFromLatLng(queryLatLng)
+
+	// Convert radius (meters) to angle (radians)
+	angle := s1.Angle(radiusMeters / 6371000) // Earth's radius in meters
+
+	// Create a spherical cap (disc on the globe)
+	cap := s2.CapFromCenterAngle(queryPoint, angle)
+
+	// Use RegionCoverer to find CellIDs intersecting the cap
+	rc := &s2.RegionCoverer{
+		MinLevel: si.level,
+		MaxLevel: si.level,
+		MaxCells: 20,
+	}
+	cellUnion := rc.Covering(cap)
+
+	var results []NearestResult
+	for _, cellID := range cellUnion {
+		if locs, ok := si.data[cellID]; ok {
+			for _, loc := range locs {
+				dist := haversineDistance(lat, lng, loc.Lat, loc.Lng)
+				if dist <= radiusMeters {
+					results = append(results, NearestResult{
+						Location:       loc,
+						DistanceMeters: dist,
+					})
+				}
+			}
+		}
+	}
+
+	sort.Slice(results, func(i, j int) bool {
+		return results[i].DistanceMeters < results[j].DistanceMeters
+	})
+
+	return results
+}
+
+/*
+* Usage:
+* loc := Location{"Brno", 49.195, 16.611}
+* index.Remove(loc)
+ */
+func (si *SpatialIndex) Remove(loc Location) {
+
+	cell := s2.CellIDFromLatLng(s2.LatLngFromDegrees(loc.Lat, loc.Lng)).Parent(si.level)
+
+	locations, ok := si.data[cell]
+	if !ok {
+		return
+	}
+
+	// Find and remove by exact match
+	for i, l := range locations {
+		if l.Lat == loc.Lat && l.Lng == loc.Lng && l.Name == loc.Name {
+			// Remove from slice
+			si.data[cell] = append(locations[:i], locations[i+1:]...)
+			break
+		}
+	}
+
+	// Clean up empty cell list
+	if len(si.data[cell]) == 0 {
+		delete(si.data, cell)
+	}
+
+	// TODO: remove also from flat
+	// TODO: remove also from flat
+	// TODO: remove also from flat
+	delete(si.flat, loc.Id)
+}
+
+func (si *SpatialIndex) GetLocations() map[int64]*Location {
+	return si.flat
+}
+
+func (si *SpatialIndex) GetLocation(id int64) *Location {
+	l, ok := si.flat[id]
+	if ok {
+		return l
+	}
+	return nil
+}

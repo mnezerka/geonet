@@ -42,7 +42,7 @@ func SetVerbosityByName(levelName LevelName) {
 }
 
 func Info(str string) {
-	if verbosity >= LOG_LEVEL_INFO {
+	if verbosity <= LOG_LEVEL_INFO {
 		fmt.Fprint(os.Stderr, str+"\n")
 	}
 }
@@ -69,6 +69,12 @@ func Debugf(format string, args ...interface{}) {
 func Error(str string) {
 	if verbosity <= LOG_LEVEL_ERROR {
 		fmt.Fprint(os.Stderr, str+"\n")
+	}
+}
+
+func Errorf(format string, args ...interface{}) {
+	if verbosity <= LOG_LEVEL_ERROR {
+		fmt.Fprintf(os.Stderr, format+"\n", args...)
 	}
 }
 

@@ -3,11 +3,12 @@ package cmd
 import (
 	"encoding/json"
 	"fmt"
-	geojson "github.com/paulmach/go.geojson"
-	"github.com/spf13/cobra"
 	"mnezerka/geonet/config"
 	"mnezerka/geonet/log"
 	"mnezerka/geonet/store"
+
+	geojson "github.com/paulmach/go.geojson"
+	"github.com/spf13/cobra"
 )
 
 var exportCmdSimplify bool
