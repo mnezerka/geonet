@@ -82,6 +82,18 @@ func WithError(err error) {
 	fmt.Fprintf(os.Stderr, "%s", err)
 }
 
+func ExitWithError(err error) {
+	WithError(err)
+	os.Exit(1)
+}
+
+func Exitf(format string, args ...interface{}) {
+	if verbosity <= LOG_LEVEL_ERROR {
+		fmt.Fprintf(os.Stderr, format+"\n", args...)
+	}
+	os.Exit(1)
+}
+
 // String is used both by fmt.Print and by Cobra in help text
 func (e *LevelName) String() string {
 	return string(*e)

@@ -3,11 +3,12 @@ package tracks
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/mnezerka/gpxcli/gpxutils"
-	"github.com/tkrajina/gpxgo/gpx"
 	"mnezerka/geonet/log"
 	"mnezerka/geonet/utils"
 	"os"
+
+	"github.com/mnezerka/gpxcli/gpxutils"
+	"github.com/tkrajina/gpxgo/gpx"
 )
 
 type Track struct {
@@ -86,7 +87,7 @@ func (t *Track) ReadPoints() {
 		panic(err)
 	}
 
-	log.Infof("points read from gpx file: %d", len(t.Points))
+	log.Debugf("points read from gpx file: %d", len(t.Points))
 }
 
 func (t *Track) InterpolateDistance(distance int64) {

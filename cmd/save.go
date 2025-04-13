@@ -1,13 +1,6 @@
 package cmd
 
 import (
-	"encoding/json"
-	"fmt"
-
-	"mnezerka/geonet/config"
-	"mnezerka/geonet/log"
-	"mnezerka/geonet/store"
-
 	"github.com/spf13/cobra"
 )
 
@@ -16,20 +9,22 @@ var saveCmd = &cobra.Command{
 	Short: "Save geonet to filesystem (complete image of database)",
 	RunE: func(cmd *cobra.Command, args []string) error {
 
-		store := store.NewMongoStore(&config.Cfg)
-		defer func() { store.Close() }()
+		/*
+			store := store.NewMongoStore(&config.Cfg)
+			defer func() { store.Close() }()
 
-		log.Info("exporting geonet")
+			log.Info("exporting geonet")
 
-		export := store.Export()
+			export := store.Export()
 
-		// meta - json
-		sJson, err := json.MarshalIndent(export, "", " ")
-		if err != nil {
-			return err
-		}
+			// meta - json
+			sJson, err := json.MarshalIndent(export, "", " ")
+			if err != nil {
+				return err
+			}
 
-		fmt.Print(string(sJson))
+			fmt.Print(string(sJson))
+		*/
 
 		return nil
 	},

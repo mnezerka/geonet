@@ -1,6 +1,7 @@
 package s2store
 
 import (
+	"fmt"
 	"math"
 )
 
@@ -22,4 +23,8 @@ func haversineDistance(lat1, lng1, lat2, lng2 float64) float64 {
 func edgeIdFromPointIds(from, to int64) S2EdgeKey {
 	edgePoints := []int64{min(from, to), max(from, to)}
 	return S2EdgeKey{edgePoints[0], edgePoints[1]}
+}
+
+func edgeIdToString(id S2EdgeKey) string {
+	return fmt.Sprintf("%d-%d", id.P1, id.P2)
 }

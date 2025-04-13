@@ -6,13 +6,17 @@ import (
 	"mnezerka/geonet/config"
 	"mnezerka/geonet/log"
 	"mnezerka/geonet/s2store"
+	"mnezerka/geonet/store"
 	"mnezerka/geonet/tracks"
 	"os"
+	"text/template"
 
 	"github.com/jedib0t/go-pretty/v6/table"
 	"github.com/spf13/cobra"
 )
 
+var genCmdSimplify bool
+var genCmdRender bool
 var genCmdExport bool
 var genCmdInterpolate bool
 var genCmdLimit int
@@ -23,24 +27,11 @@ var genCmd = &cobra.Command{
 	Args:  cobra.MinimumNArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
 
-		//store := store.NewMongoStore(&config.Cfg)
-
 		store := s2store.NewS2Store(&config.Cfg)
 
-		//defer func() { store.Close() }()
+		log.Infof("generating geonet from %d input files", len(args))
 
-		// clean all data from previous executions
-		//store.Reset()
-
-		log.Infof("generating geonet from %v", args)
-
-		/*
-			store.Log(fmt.Sprintf("generate cfg=(%s) flags=(%s)",
-				config.Cfg.ToString(),
-				fmt.Sprintf("interpolate: %v, limit: %d", genCmdInterpolate, genCmdLimit),
-			))
-		*/
-
+		log.Infof("building network")
 		for file_ix := 0; file_ix < len(args); file_ix++ {
 
 			// interrupt loop if number of tracks is limited
@@ -50,9 +41,8 @@ var genCmd = &cobra.Command{
 				}
 			}
 
-			log.Infof("processing %s", args[file_ix])
-
 			t := tracks.NewTrack(args[file_ix])
+			log.Infof("  %d/%d %s (%d points)", file_ix+1, len(args), args[file_ix], len(t.Points))
 
 			if genCmdInterpolate {
 				t.InterpolateDistance(config.Cfg.InterpolationDistance)
@@ -64,11 +54,14 @@ var genCmd = &cobra.Command{
 			}
 		}
 
+		if genCmdSimplify {
+			log.Infof("simplifying network")
+			store.Simplify()
+		}
+
 		if genCmdExport {
-			gJson, err := store.ToGeoJson()
-			if err != nil {
-				return err
-			}
+			log.Infof("exporting network")
+			gJson := store.ToGeoJson()
 
 			strJson, err := json.MarshalIndent(gJson, "", " ")
 			if err != nil {
@@ -78,6 +71,12 @@ var genCmd = &cobra.Command{
 			fmt.Print(string(strJson))
 		}
 
+		if genCmdRender {
+			log.Infof("rendering network")
+			render(store)
+		}
+
+		log.Infof("statistics:")
 		printStoreStat(store.Stat)
 
 		return nil
@@ -90,23 +89,74 @@ func init() {
 	genCmd.PersistentFlags().Int64Var(&config.Cfg.MatchMaxDistance, "match-max-dist", config.Cfg.MatchMaxDistance, "maximal distance in meters for matching new points against points in geonet")
 	genCmd.PersistentFlags().IntVar(&genCmdLimit, "limit", -1, "max number of tracks to be processed")
 
+	genCmd.PersistentFlags().BoolVar(&genCmdRender, "render", false, "render final geonet to html page")
 	genCmd.PersistentFlags().BoolVarP(&genCmdExport, "export", "e", false, "export final geonet to geojson")
 	genCmd.PersistentFlags().BoolVar(&config.Cfg.ShowPoints, "points", config.Cfg.ShowPoints, "render individual points")
 	genCmd.PersistentFlags().BoolVar(&config.Cfg.ShowEdges, "edges", config.Cfg.ShowEdges, "render edges")
 
+	genCmd.PersistentFlags().BoolVar(&genCmdSimplify, "simplify", false, "simplify geonet")
+	genCmd.PersistentFlags().Int64Var(&config.Cfg.SimplifyMinDistance, "sim-min-dist", config.Cfg.MatchMaxDistance, "minimal distance between points for simplification")
+
 	rootCmd.AddCommand(genCmd)
 }
 
-func printStoreStat(stat s2store.S3StoreStat) {
+func printStoreStat(stat store.Stat) {
 
 	t := table.NewWriter()
 	t.SetOutputMirror(os.Stderr)
-	t.AppendHeader(table.Row{"Entity", "Processed", "Reused", "Created"})
+	t.AppendHeader(table.Row{"Entity", "Processed", "Reused", "Created", "Simplified", "Final"})
 	t.AppendRows([]table.Row{
-		{"tracks", stat.TracksProcessed, "-", "-"},
-		{"points", stat.PointsProcessed, stat.PointsReused, stat.PointsCreated},
-		{"edges", "-", stat.EdgesReused, stat.EdgesCreated},
+		{"tracks", stat.TracksProcessed, "-", "-", "-", stat.TracksProcessed},
+		{"points", stat.PointsProcessed, stat.PointsReused, stat.PointsCreated, stat.PointsSimplified, stat.PointsFinal},
+		{"edges", "-", stat.EdgesReused, stat.EdgesCreated, stat.EdgesSimplified, stat.EdgesFinal},
+		{"segments", stat.SegmentsProcessed, "-", "-", stat.SegmentsSimplified, "-"},
 	})
 	t.Render()
+}
 
+func render(store *s2store.S2Store) {
+	log.Debug("------------ visualisation of geonet --------------")
+
+	collection := store.ToGeoJson()
+
+	meta := store.GetMeta()
+
+	// meta - json
+	metaJson, err := json.Marshal(meta)
+	if err != nil {
+		log.ExitWithError(err)
+	}
+
+	// collection -> json
+	rawJSON, err := collection.MarshalJSON()
+	if err != nil {
+		log.ExitWithError(err)
+	}
+
+	var tmplFile = "templates/map.html"
+
+	// Load the template file
+	tmpl, err := template.ParseFiles(tmplFile)
+	if err != nil {
+		log.ExitWithError(err)
+	}
+
+	// load js logic
+	jsContent, err := os.ReadFile("templates/map.js")
+	if err != nil {
+		log.ExitWithError(err)
+	}
+
+	data := mapData{
+		Title:          "GeoNet",
+		Meta:           string(metaJson),
+		GeoJson:        string(rawJSON),
+		UseTrackColors: config.Cfg.ShowTrackColors,
+		Js:             string(jsContent),
+	}
+
+	err = tmpl.Execute(os.Stdout, data)
+	if err != nil {
+		log.ExitWithError(err)
+	}
 }

@@ -1,12 +1,6 @@
 package cmd
 
 import (
-	"encoding/json"
-	"mnezerka/geonet/config"
-	"mnezerka/geonet/log"
-	"mnezerka/geonet/store"
-	"os"
-
 	"github.com/spf13/cobra"
 )
 
@@ -16,28 +10,30 @@ var loadCmd = &cobra.Command{
 	Args:  cobra.ExactArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
 
-		s := store.NewMongoStore(&config.Cfg)
-		defer func() { s.Close() }()
+		/*
+			s := store.NewMongoStore(&config.Cfg)
+			defer func() { s.Close() }()
 
-		log.Infof("loading geonet from %s", args[0])
+			log.Infof("loading geonet from %s", args[0])
 
-		// Read the JSON file
-		file, err := os.Open(args[0])
-		if err != nil {
-			return err
-		}
-		defer file.Close()
+			// Read the JSON file
+			file, err := os.Open(args[0])
+			if err != nil {
+				return err
+			}
+			defer file.Close()
 
-		var loadedData store.DbContent
+			var loadedData store.DbContent
 
-		// Decode the JSON file into the importData variable
-		decoder := json.NewDecoder(file)
-		err = decoder.Decode(&loadedData)
-		if err != nil {
-			return err
-		}
+			// Decode the JSON file into the importData variable
+			decoder := json.NewDecoder(file)
+			err = decoder.Decode(&loadedData)
+			if err != nil {
+				return err
+			}
 
-		s.Import(&loadedData)
+			s.Import(&loadedData)
+		*/
 
 		return nil
 	},

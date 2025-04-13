@@ -1,10 +1,7 @@
 package cmd
 
 import (
-	"encoding/json"
-	"fmt"
 	"mnezerka/geonet/config"
-	"mnezerka/geonet/log"
 	"mnezerka/geonet/store"
 
 	geojson "github.com/paulmach/go.geojson"
@@ -15,7 +12,7 @@ var exportCmdSimplify bool
 
 type exportBundle struct {
 	GeoJson *geojson.FeatureCollection
-	Meta    store.DbMeta
+	Meta    store.Meta
 }
 
 var exportCmd = &cobra.Command{
@@ -23,41 +20,43 @@ var exportCmd = &cobra.Command{
 	Short: "Export geonet in format consumable by 3rd party apps",
 	RunE: func(cmd *cobra.Command, args []string) error {
 
-		store := store.NewMongoStore(&config.Cfg)
-		defer func() { store.Close() }()
+		/*
+			store := store.NewMongoStore(&config.Cfg)
+			defer func() { store.Close() }()
 
-		log.Info("stashing geonet")
-		store.StashPush()
+			log.Info("stashing geonet")
+			store.StashPush()
 
-		if exportCmdSimplify {
-			log.Info("simplyfying geonet")
-			store.Simplify()
-		}
+			if exportCmdSimplify {
+				log.Info("simplyfying geonet")
+				store.Simplify()
+			}
 
-		var err error
-		export := exportBundle{}
+			var err error
+			export := exportBundle{}
 
-		// 1. ---------------- points, edges -> geojson
-		export.GeoJson, err = store.ToGeoJson()
-		if err != nil {
-			return err
-		}
+			// 1. ---------------- points, edges -> geojson
+			export.GeoJson, err = store.ToGeoJson()
+			if err != nil {
+				return err
+			}
 
-		// 2. ---------------- meta data (e.g. tracks)
-		export.Meta, err = store.GetMeta()
-		if err != nil {
-			return err
-		}
+			// 2. ---------------- meta data (e.g. tracks)
+			//export.Meta, err = store.GetMeta()
+			if err != nil {
+				return err
+			}
 
-		sJson, err := json.MarshalIndent(export, "", " ")
-		if err != nil {
-			return err
-		}
+			sJson, err := json.MarshalIndent(export, "", " ")
+			if err != nil {
+				return err
+			}
 
-		fmt.Print(string(sJson))
+			fmt.Print(string(sJson))
 
-		log.Info("unstashing geonet")
-		store.StashPop()
+			log.Info("unstashing geonet")
+			store.StashPop()
+		*/
 
 		return nil
 	},

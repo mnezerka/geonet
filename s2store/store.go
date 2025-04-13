@@ -1,9 +1,15 @@
 package s2store
 
+/*
+* Resources:
+* https://s2geometry.io/devguide/s2cell_hierarchy
+* sizes of cells at levels: https://s2geometry.io/resources/s2cell_statistics
+* s2 golang doc: github.com/golang/geo/s2
+ */
 import (
-	"fmt"
 	"mnezerka/geonet/config"
 	"mnezerka/geonet/log"
+	"mnezerka/geonet/store"
 	"mnezerka/geonet/tracks"
 	"slices"
 
@@ -11,11 +17,6 @@ import (
 )
 
 const NIL_ID = -1
-
-type S2Track struct {
-	Id   int64
-	Meta tracks.TrackMeta
-}
 
 type S2EdgeKey struct {
 	P1 int64
@@ -28,23 +29,14 @@ type S2Edge struct {
 	Tracks []int64
 }
 
-type S3StoreStat struct {
-	TracksProcessed int64
-	PointsProcessed int64
-	PointsCreated   int64
-	PointsReused    int64
-	EdgesCreated    int64
-	EdgesReused     int64
-}
-
 type S2Store struct {
 	cfg         *config.Configuration
 	index       *SpatialIndex
 	lastPointId int64
 	lastTrackId int64
-	tracks      map[int64]*S2Track
+	tracks      map[int64]*store.Track
 	edges       map[S2EdgeKey]*S2Edge
-	Stat        S3StoreStat
+	Stat        store.Stat
 }
 
 func NewS2Store(cfg *config.Configuration) *S2Store {
@@ -52,7 +44,7 @@ func NewS2Store(cfg *config.Configuration) *S2Store {
 
 	s.cfg = cfg
 	s.index = NewSpatialIndex(15)
-	s.tracks = make(map[int64]*S2Track)
+	s.tracks = make(map[int64]*store.Track)
 	//s.edges = make(map[string]*S2Edge)
 	s.edges = make(map[S2EdgeKey]*S2Edge)
 
@@ -74,9 +66,9 @@ func (s *S2Store) AddGpx(track *tracks.Track) error {
 	var lastPointId int64 = NIL_ID
 	var finalPointId int64 = NIL_ID
 
-	log.Infof("adding %s to the rtree store", track.Meta.PostTitle)
+	log.Debugf("adding %s to the rtree store", track.Meta.PostTitle)
 
-	s2Track := S2Track{
+	s2Track := store.Track{
 		Id:   s.GenTrackId(),
 		Meta: track.Meta,
 	}
@@ -158,7 +150,6 @@ func (s *S2Store) AddGpx(track *tracks.Track) error {
 		}
 		// remember current point id for next iteration (for edge construction)
 		lastPointId = finalPointId
-
 	}
 
 	return nil
@@ -178,6 +169,12 @@ func (s *S2Store) getEdgesForPointId(id int64) []*S2Edge {
 	return result
 }
 
+func (s *S2Store) removeEdgesByIds(ids []S2EdgeKey) {
+	for _, edgeId := range ids {
+		delete(s.edges, edgeId)
+	}
+}
+
 func (s *S2Store) updateCrossingForEdgePoints(edgeId S2EdgeKey) {
 
 	// first point
@@ -186,7 +183,7 @@ func (s *S2Store) updateCrossingForEdgePoints(edgeId S2EdgeKey) {
 		// set P1 as crossing
 		p1 := s.index.GetLocation(edgeId.P1)
 		if p1 == nil {
-			log.Errorf("Inconsistent data, missing point %d for edge %v", edgeId.P1, edgeId)
+			log.Errorf("inconsistent data, missing point %d for edge %v", edgeId.P1, edgeId)
 		}
 		p1.Crossing = true
 	}
@@ -197,17 +194,31 @@ func (s *S2Store) updateCrossingForEdgePoints(edgeId S2EdgeKey) {
 		// set P2 as crossing
 		p2 := s.index.GetLocation(edgeId.P2)
 		if p2 == nil {
-			log.Errorf("Inconsistent data, missing point %d for edge %v", edgeId.P2, edgeId)
+			log.Errorf("inconsistent data, missing point %d for edge %v", edgeId.P2, edgeId)
 		}
 		p2.Crossing = true
 	}
 }
 
-func (s *S2Store) ToGeoJson() (*geojson.FeatureCollection, error) {
+func (s *S2Store) GetMeta() store.Meta {
+
+	var meta store.Meta
+
+	for _, t := range s.tracks {
+		meta.Tracks = append(meta.Tracks, t)
+	}
+
+	return meta
+}
+
+func (s *S2Store) ToGeoJson() *geojson.FeatureCollection {
 
 	collection := geojson.NewFeatureCollection()
 
 	points := s.index.GetLocations()
+
+	s.Stat.PointsFinal = 0
+	s.Stat.EdgesFinal = 0
 
 	if s.cfg.ShowPoints {
 
@@ -225,7 +236,7 @@ func (s *S2Store) ToGeoJson() (*geojson.FeatureCollection, error) {
 			collection.AddFeature(pnt)
 		}
 
-		log.Infof("points rendered: %d", len(points))
+		s.Stat.PointsFinal = int64(len(points))
 	}
 
 	if s.cfg.ShowEdges {
@@ -237,7 +248,7 @@ func (s *S2Store) ToGeoJson() (*geojson.FeatureCollection, error) {
 
 			// of some of the points were not found -> inconsistent data
 			if !p1ok || !p2ok {
-				return nil, fmt.Errorf("inconsistent data, some edge points where not found %d %d", edge.Points[0], edge.Points[1])
+				log.Exitf("inconsistent data, some edge points where not found %d %d", edge.Points[0], edge.Points[1])
 			}
 
 			edgeCoordinates := [][]float64{
@@ -246,15 +257,15 @@ func (s *S2Store) ToGeoJson() (*geojson.FeatureCollection, error) {
 			}
 
 			line := geojson.NewLineStringFeature(edgeCoordinates)
-			line.SetProperty("id", edge.Id)
+			line.SetProperty("id", edgeIdToString(edge.Id))
 			line.SetProperty("tracks", edge.Tracks)
 			// TODO: line.SetProperty("count", edge.Count)
 
 			collection.AddFeature(line)
 		}
 
-		log.Infof("edges rendered: %d", len(s.edges))
+		s.Stat.EdgesFinal = int64(len(s.edges))
 	}
 
-	return collection, nil
+	return collection
 }

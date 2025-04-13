@@ -1,6 +1,7 @@
 package s2store
 
 import (
+	"slices"
 	"sort"
 
 	"github.com/golang/geo/s1"
@@ -8,15 +9,16 @@ import (
 )
 
 type Location struct {
-	Id       int64
-	Name     string
-	Lat      float64
-	Lng      float64
-	Tracks   []int64
-	Count    int
-	Begin    bool
-	End      bool
-	Crossing bool
+	Id        int64
+	Name      string
+	Lat       float64
+	Lng       float64
+	Tracks    []int64
+	Count     int
+	Begin     bool
+	End       bool
+	Crossing  bool
+	Processed bool
 }
 
 type NearestResult struct {
@@ -91,7 +93,7 @@ func (si *SpatialIndex) Nearest(lat, lng float64, radiusMeters float64) []Neares
 * loc := Location{"Brno", 49.195, 16.611}
 * index.Remove(loc)
  */
-func (si *SpatialIndex) Remove(loc Location) {
+func (si *SpatialIndex) Remove(loc *Location) {
 
 	cell := s2.CellIDFromLatLng(s2.LatLngFromDegrees(loc.Lat, loc.Lng)).Parent(si.level)
 
@@ -120,8 +122,39 @@ func (si *SpatialIndex) Remove(loc Location) {
 	delete(si.flat, loc.Id)
 }
 
+func (si *SpatialIndex) RemoveByIds(ids []int64) {
+	for _, loc := range si.flat {
+		if slices.Contains(ids, loc.Id) {
+			si.Remove(loc)
+			delete(si.flat, loc.Id)
+		}
+	}
+}
+
 func (si *SpatialIndex) GetLocations() map[int64]*Location {
 	return si.flat
+}
+
+func (si *SpatialIndex) GetLocationsByIds(ids []int64) []*Location {
+	result := []*Location{}
+
+	for _, loc := range si.flat {
+		if slices.Contains(ids, loc.Id) {
+			result = append(result, loc)
+		}
+	}
+	return result
+}
+
+func (si *SpatialIndex) GetLocationsFiltered(filter func(l *Location) bool) []*Location {
+	result := []*Location{}
+
+	for _, loc := range si.flat {
+		if filter(loc) {
+			result = append(result, loc)
+		}
+	}
+	return result
 }
 
 func (si *SpatialIndex) GetLocation(id int64) *Location {
@@ -130,4 +163,21 @@ func (si *SpatialIndex) GetLocation(id int64) *Location {
 		return l
 	}
 	return nil
+}
+
+func (si *SpatialIndex) GetFirstLocation(filter func(l *Location) bool) *Location {
+
+	for _, loc := range si.flat {
+		if filter(loc) {
+			return loc
+		}
+	}
+
+	return nil
+}
+
+func (si *SpatialIndex) SetLocationsNotProcessed() {
+	for _, loc := range si.flat {
+		loc.Processed = false
+	}
 }
