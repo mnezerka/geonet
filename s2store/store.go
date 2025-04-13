@@ -12,8 +12,6 @@ import (
 	"mnezerka/geonet/store"
 	"mnezerka/geonet/tracks"
 	"slices"
-
-	geojson "github.com/paulmach/go.geojson"
 )
 
 const NIL_ID = -1
@@ -24,9 +22,10 @@ type S2EdgeKey struct {
 }
 
 type S2Edge struct {
-	Id     S2EdgeKey
-	Points []int64
-	Tracks []int64
+	Id        S2EdgeKey
+	Points    []int64
+	Tracks    []int64
+	Processed bool
 }
 
 type S2Store struct {
@@ -156,6 +155,26 @@ func (s *S2Store) AddGpx(track *tracks.Track) error {
 
 }
 
+func (s *S2Store) GetEdgesFiltered(filter func(l *S2Edge) bool) []*S2Edge {
+	result := []*S2Edge{}
+
+	for _, edge := range s.edges {
+		if filter(edge) {
+			result = append(result, edge)
+		}
+	}
+	return result
+}
+
+func (s *S2Store) GetFirstEdgeFiltered(filter func(l *S2Edge) bool) *S2Edge {
+	for _, edge := range s.edges {
+		if filter(edge) {
+			return edge
+		}
+	}
+	return nil
+}
+
 func (s *S2Store) getEdgesForPointId(id int64) []*S2Edge {
 	result := []*S2Edge{}
 
@@ -211,61 +230,8 @@ func (s *S2Store) GetMeta() store.Meta {
 	return meta
 }
 
-func (s *S2Store) ToGeoJson() *geojson.FeatureCollection {
-
-	collection := geojson.NewFeatureCollection()
-
-	points := s.index.GetLocations()
-
-	s.Stat.PointsFinal = 0
-	s.Stat.EdgesFinal = 0
-
-	if s.cfg.ShowPoints {
-
-		for _, point := range points {
-
-			pnt := geojson.NewPointFeature([]float64{point.Lng, point.Lat})
-
-			pnt.SetProperty("id", point.Id)
-			pnt.SetProperty("tracks", point.Tracks)
-			pnt.SetProperty("begin", point.Begin)
-			pnt.SetProperty("end", point.End)
-			pnt.SetProperty("crossing", point.Crossing)
-			// TODO: pnt.SetProperty("count", point.Count)
-
-			collection.AddFeature(pnt)
-		}
-
-		s.Stat.PointsFinal = int64(len(points))
+func (s *S2Store) setEdgesNotProcessed() {
+	for _, e := range s.edges {
+		e.Processed = false
 	}
-
-	if s.cfg.ShowEdges {
-
-		for _, edge := range s.edges {
-
-			p1, p1ok := points[edge.Points[0]]
-			p2, p2ok := points[edge.Points[1]]
-
-			// of some of the points were not found -> inconsistent data
-			if !p1ok || !p2ok {
-				log.Exitf("inconsistent data, some edge points where not found %d %d", edge.Points[0], edge.Points[1])
-			}
-
-			edgeCoordinates := [][]float64{
-				{p1.Lng, p1.Lat},
-				{p2.Lng, p2.Lat},
-			}
-
-			line := geojson.NewLineStringFeature(edgeCoordinates)
-			line.SetProperty("id", edgeIdToString(edge.Id))
-			line.SetProperty("tracks", edge.Tracks)
-			// TODO: line.SetProperty("count", edge.Count)
-
-			collection.AddFeature(line)
-		}
-
-		s.Stat.EdgesFinal = int64(len(s.edges))
-	}
-
-	return collection
 }

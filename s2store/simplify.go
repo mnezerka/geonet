@@ -25,15 +25,30 @@ func (s *S2Store) Simplify() {
 	s.index.SetLocationsNotProcessed()
 
 	// simplify segments until there is no more to simplify
-	for s.simplifySegment() {
+	for {
+		path := s.getNextFreeSegment()
+		if len(path) < 2 {
+			break
+		}
+
+		//  simplify
+		simplifiedPath := simplifyPath(path, s.cfg.SimplifyMinDistance)
+		log.Debugf("simplified path: %v", simplifiedPath)
+
+		// adapt edges
+		s.adaptEdges(path, simplifiedPath)
+
+		// adapt statistics
 		s.Stat.SegmentsProcessed++
 		s.Stat.SegmentsSimplified++
 	}
 }
 
-func (s *S2Store) simplifySegment() bool {
+func (s *S2Store) getNextFreeSegment() []*Location {
 
-	log.Debug("---------- simplify segment -----------")
+	log.Debug("---------- get next free segment -----------")
+
+	path := []*Location{}
 
 	// 1. get random free point (free = not crossing, not start nor end of track)
 	// pick the first free point and start processing
@@ -43,21 +58,14 @@ func (s *S2Store) simplifySegment() bool {
 
 	if freePoint == nil {
 		log.Debugf("no free point found")
-		return false
+		return path
 	}
 
 	log.Debugf("free point: %d, setting processed -> true", freePoint.Id)
 	freePoint.Processed = true
 
-	// 2. find free segment (not processed points) from the free point - both sides
-	//neighbourIds := s.findNeighbours(*freePoint)
-
-	// filter out points that are beginnings, endings and crossings
-	//log.Debugf("neighbourIds=%v", neighbourIds)
-	//n := s.index.GetLocationsByIds(neighbourIds)
-
 	// let's start building path from freePoint
-	path := []*Location{freePoint}
+	path = append(path, freePoint)
 
 	// legs are paths starting at freePoint
 	for leg := 0; leg < 2; leg++ {
@@ -83,14 +91,7 @@ func (s *S2Store) simplifySegment() bool {
 		log.Debugf("path at the end of leg %d traversing: %v", leg+1, pointsToIds(path))
 	}
 
-	// 3. simplify
-	simplifiedPath := simplifyPath(path, s.cfg.SimplifyMinDistance)
-	log.Debugf("simplified path: %v", simplifiedPath)
-
-	// 4. adapt edges
-	s.adaptEdges(path, simplifiedPath)
-
-	return true
+	return path
 }
 
 func (s *S2Store) getNextPoint(path []*Location) *Location {
@@ -313,10 +314,11 @@ func (s *S2Store) adaptNetToEdge(beginId, endId int64, toRemoveIds []int64) {
 		log.Exitf("edge %v not found", firstEdgeId)
 	}
 
-	log.Debugf("here %v %v", finalEdge, firstEdge)
+	// update final edge with properties of the first edge, copying slices is important
+	log.Debugf("tracks before merge: %v %v", finalEdge.Tracks, firstEdge.Tracks)
+	finalEdge.Tracks = append(finalEdge.Tracks, firstEdge.Tracks...)
+	log.Debugf("merged tracks: %v", finalEdge.Tracks)
 
-	// update final edge with properties of the first edge
-	finalEdge.Tracks = firstEdge.Tracks
 	//finalEdge.Count = firstEdge.Count
 
 	// delete all edges

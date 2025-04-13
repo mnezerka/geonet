@@ -11,6 +11,7 @@ type Configuration struct {
 	ShowPoints            bool  // render points to map
 	ShowEdges             bool  // render edges to map
 	ShowTrackColors       bool  // render tracks with different colors
+	GeoJsonMergeEdges     bool  // export edge segments ans continuous line instead of individual lines
 }
 
 func (c *Configuration) ToString() string {
@@ -28,4 +29,5 @@ var Cfg = Configuration{
 	ShowPoints:            false,
 	ShowEdges:             true,
 	ShowTrackColors:       false,
+	GeoJsonMergeEdges:     false,
 }
