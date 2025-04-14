@@ -12,7 +12,8 @@ func (s *S2Store) Simplify() {
 	log.Debug("========== simplification ===========")
 
 	// reset all points to not processed state to be sure we start with clean setup
-	s.index.SetLocationsNotProcessed()
+	//s.index.SetLocationsNotProcessed()
+	s.setEdgesNotProcessed()
 
 	// simplify segments until there is no more to simplify
 	for {

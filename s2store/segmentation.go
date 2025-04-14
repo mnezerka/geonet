@@ -12,23 +12,21 @@ func (s *S2Store) getNextFreeSegment() []*Location {
 
 	path := []*Location{}
 
-	// 1. get random free point (free = not crossing, not start nor end of track)
-	// pick the first free point and start processing
-	freePoint := s.index.GetFirstLocation(func(loc *Location) bool {
-		//return !loc.Begin && !loc.End && !loc.Crossing && !loc.Processed
-		return !loc.Processed
+	// get random free edge (free = not processed yet)
+	freeEdge := s.GetFirstEdgeFiltered(func(edge *S2Edge) bool {
+		return !edge.Processed
 	})
 
-	if freePoint == nil {
-		log.Debugf("no free point found")
+	if freeEdge == nil {
+		log.Debugf("no free edges found")
 		return path
 	}
 
-	log.Debugf("free point: %d, setting processed -> true", freePoint.Id)
-	freePoint.Processed = true
+	log.Debugf("free edge: %v, setting processed -> true", freeEdge.Id)
+	freeEdge.Processed = true
 
 	// let's start building path from freePoint
-	path = append(path, freePoint)
+	path = append(path, s.index.GetLocation(freeEdge.Id.P1), s.index.GetLocation(freeEdge.Id.P2))
 
 	// legs are paths starting at freePoint
 	for leg := 0; leg < 2; leg++ {
@@ -39,9 +37,16 @@ func (s *S2Store) getNextFreeSegment() []*Location {
 		for nextPointExists {
 			nextPoint := s.getNextPoint(path)
 			if nextPoint != nil {
-				log.Debugf("mark point: %v, setting processed -> true", nextPoint.Id)
-				nextPoint.Processed = true
 				path = append(path, nextPoint)
+				// set appropriate edge to processed
+				lastEdgeId := edgeIdFromPointIds(path[len(path)-1].Id, path[len(path)-2].Id)
+				lastEdge := s.getEdgeById(lastEdgeId)
+				if lastEdge != nil {
+					log.Debugf("mark edge: %v, setting processed -> true", lastEdgeId)
+					lastEdge.Processed = true
+				} else {
+					log.Exitf("inconsistent data, edge not found: %v", lastEdgeId)
+				}
 				log.Debugf("path was extended to: %v", pointsToIds(path))
 			} else {
 				nextPointExists = false
@@ -82,7 +87,7 @@ func (s *S2Store) getNextPoint(path []*Location) *Location {
 	neighbourIds := s.findNeighbours(*p)
 	log.Debugf("all neighbours: %v", neighbourIds)
 	neighbourFreeIds := s.index.GetLocationsFiltered(func(l *Location) bool {
-		return !l.Begin && !l.End && !l.Crossing && !l.Processed && slices.Contains(neighbourIds, l.Id)
+		return !l.Begin && !l.End && !l.Crossing && slices.Contains(neighbourIds, l.Id)
 	})
 
 	log.Debugf("neighbours (not processed, not begin, not end, not crossing): %v", pointsToIds(neighbourFreeIds))
@@ -132,19 +137,17 @@ func (s *S2Store) findNeighbours(p Location) []int64 {
 		if !slices.Contains(result, newId) {
 			result = append(result, newId)
 		}
-
 	}
-
-	//log.Debugf("neighbours found: %v", result)
 
 	return result
 }
 
+// look in not processed edges only
 func (s *S2Store) findPointEdges(id int64) []S2EdgeKey {
 	result := []S2EdgeKey{}
 
-	for edgeId := range s.edges {
-		if edgeId.P1 == id || edgeId.P2 == id {
+	for edgeId, edge := range s.edges {
+		if !edge.Processed && (edgeId.P1 == id || edgeId.P2 == id) {
 			result = append(result, edgeId)
 		}
 	}

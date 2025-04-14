@@ -18,10 +18,13 @@ type Stat struct {
 	PointsSimplified   int64
 	PointsReused       int64
 	PointsFinal        int64
+	PointsRendered     int64
 	EdgesCreated       int64
 	EdgesReused        int64
 	EdgesSimplified    int64
 	EdgesFinal         int64
+	EdgesRendered      int64
 	SegmentsProcessed  int64
 	SegmentsSimplified int64
+	SegmentsRendered   int64
 }

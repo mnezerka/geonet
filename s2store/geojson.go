@@ -33,7 +33,7 @@ func (s *S2Store) ToGeoJson() *geojson.FeatureCollection {
 			collection.AddFeature(pnt)
 		}
 
-		s.Stat.PointsFinal = int64(len(points))
+		s.Stat.PointsRendered = int64(len(points))
 	}
 
 	if s.cfg.ShowEdges {
@@ -41,7 +41,8 @@ func (s *S2Store) ToGeoJson() *geojson.FeatureCollection {
 		if s.cfg.GeoJsonMergeEdges {
 
 			// reset all points to not processed state to be sure we start with clean setup
-			s.index.SetLocationsNotProcessed()
+			//s.index.SetLocationsNotProcessed()
+			s.setEdgesNotProcessed()
 
 			for {
 				path := s.getNextFreeSegment()
@@ -74,6 +75,7 @@ func (s *S2Store) ToGeoJson() *geojson.FeatureCollection {
 
 				collection.AddFeature(line)
 
+				s.Stat.SegmentsRendered++
 			}
 		} else {
 			for _, edge := range s.edges {
@@ -97,6 +99,7 @@ func (s *S2Store) ToGeoJson() *geojson.FeatureCollection {
 				// TODO: line.SetProperty("count", edge.Count)
 
 				collection.AddFeature(line)
+				s.Stat.EdgesRendered++
 			}
 		}
 

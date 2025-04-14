@@ -104,12 +104,12 @@ func printStoreStat(stat store.Stat) {
 
 	t := table.NewWriter()
 	t.SetOutputMirror(os.Stderr)
-	t.AppendHeader(table.Row{"Entity", "Processed", "Reused", "Created", "Simplified", "Final"})
+	t.AppendHeader(table.Row{"Entity", "Processed", "Reused", "Created", "Simplified", "Final", "Rendered"})
 	t.AppendRows([]table.Row{
-		{"tracks", stat.TracksProcessed, "-", "-", "-", stat.TracksProcessed},
-		{"points", stat.PointsProcessed, stat.PointsReused, stat.PointsCreated, stat.PointsSimplified, stat.PointsFinal},
-		{"edges", "-", stat.EdgesReused, stat.EdgesCreated, stat.EdgesSimplified, stat.EdgesFinal},
-		{"segments", stat.SegmentsProcessed, "-", "-", stat.SegmentsSimplified, "-"},
+		{"tracks", stat.TracksProcessed, "-", "-", "-", stat.TracksProcessed, "-"},
+		{"points", stat.PointsProcessed, stat.PointsReused, stat.PointsCreated, stat.PointsSimplified, stat.PointsFinal, stat.PointsRendered},
+		{"edges", "-", stat.EdgesReused, stat.EdgesCreated, stat.EdgesSimplified, stat.EdgesFinal, stat.EdgesRendered},
+		{"segments", stat.SegmentsProcessed, "-", "-", stat.SegmentsSimplified, "-", stat.SegmentsRendered},
 	})
 	t.Render()
 }

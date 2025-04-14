@@ -61,7 +61,6 @@ func (s *S2Store) GenTrackId() int64 {
 }
 
 func (s *S2Store) AddGpx(track *tracks.Track) error {
-
 	var lastPointId int64 = NIL_ID
 	var finalPointId int64 = NIL_ID
 
@@ -152,7 +151,6 @@ func (s *S2Store) AddGpx(track *tracks.Track) error {
 	}
 
 	return nil
-
 }
 
 func (s *S2Store) GetEdgesFiltered(filter func(l *S2Edge) bool) []*S2Edge {
@@ -195,7 +193,6 @@ func (s *S2Store) removeEdgesByIds(ids []S2EdgeKey) {
 }
 
 func (s *S2Store) updateCrossingForEdgePoints(edgeId S2EdgeKey) {
-
 	// first point
 	edges := s.getEdgesForPointId(edgeId.P1)
 	if len(edges) > 2 {
@@ -220,7 +217,6 @@ func (s *S2Store) updateCrossingForEdgePoints(edgeId S2EdgeKey) {
 }
 
 func (s *S2Store) GetMeta() store.Meta {
-
 	var meta store.Meta
 
 	for _, t := range s.tracks {
