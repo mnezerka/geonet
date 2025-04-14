@@ -53,7 +53,7 @@ func (s *S2Store) ToGeoJson() *geojson.FeatureCollection {
 
 				pathCoordinates := [][]float64{}
 
-				for i := 0; i < (len(path) - 1); i++ {
+				for i := 0; i < len(path); i++ {
 					p1 := path[i]
 					pathCoordinates = append(pathCoordinates, []float64{p1.Lng, p1.Lat})
 				}
