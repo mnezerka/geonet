@@ -3,14 +3,25 @@ package tracks
 import (
 	"encoding/json"
 	"fmt"
-	"io"
 	"mnezerka/geonet/log"
 	"mnezerka/geonet/utils"
 	"net/http"
 	"net/url"
 	"os"
 	"path/filepath"
+
+	"github.com/tkrajina/gpxgo/gpx"
 )
+
+type WandererTrack struct {
+	Url string
+}
+
+type WandererPost struct {
+	Title  string
+	Tracks []WandererTrack
+	Url    string
+}
 
 func WandererReadMediaIndexFromUrl(wandererUrl string) ([]WandererPost, error) {
 
@@ -76,29 +87,34 @@ func WandererStoreTrackMeta(post *WandererPost, track *WandererTrack, sourceUrl 
 	}
 	defer resp.Body.Close()
 
+	gpxFile, err := gpx.Parse(resp.Body)
+	if err != nil {
+		return fmt.Errorf("error parsing gpx file: %s", err)
+	}
+
+	// remove empty tracks and segments + merge all tracks into one signle track
+	gpxFile.RemoveEmpty()
+	gpxFile.ReduceGpxToSingleTrack()
+
+	// update metadata
+	gpxFile.RegisterNamespace("gn", ns)
+	gpxFile.MetadataExtensions.GetOrCreateNode(ns, "trackid").Data = fileName
+	gpxFile.MetadataExtensions.GetOrCreateNode(ns, "trackurl").Data = track.Url
+	gpxFile.MetadataExtensions.GetOrCreateNode(ns, "tracktitle").Data = getTitleFromGpxContent(gpxFile, utils.GetBasename(fileName))
+	gpxFile.MetadataExtensions.GetOrCreateNode(ns, "posttitle").Data = post.Title
+	gpxFile.MetadataExtensions.GetOrCreateNode(ns, "posturl").Data = post.Url
+	gpxFile.MetadataExtensions.GetOrCreateNode(ns, "sourcetype").Data = "wanderer"
+	gpxFile.MetadataExtensions.GetOrCreateNode(ns, "sourceurl").Data = sourceUrl
+
 	// write file to the file system
+	xmlBytes, err := gpxFile.ToXml(gpx.ToXmlParams{Version: "1.1", Indent: true})
 	file, err := os.Create(filePath)
 	if err != nil {
 		return fmt.Errorf("error creating the file: %s", err)
 	}
 	defer file.Close()
 
-	_, err = io.Copy(file, resp.Body)
-	if err != nil {
-		return fmt.Errorf("error saving the file: %s", err)
-	}
-
-	// update metadata
-	t := NewTrack(filePath)
-	t.Meta.TrackId = fileName
-	t.Meta.TrackUrl = track.Url
-	t.Meta.TrackTitle = t.GetTitleFromContent()
-	t.Meta.PostTitle = post.Title
-	t.Meta.PostUrl = post.Url
-	t.Meta.SourceType = "wanderer"
-	t.Meta.SourceUrl = sourceUrl
-
-	t.WriteMeta()
+	file.Write(xmlBytes)
 
 	return nil
 }

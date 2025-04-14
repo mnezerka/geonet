@@ -5,8 +5,9 @@ import (
 	"os"
 	"strings"
 
-	"github.com/spf13/cobra"
 	"mnezerka/geonet/log"
+
+	"github.com/spf13/cobra"
 )
 
 var (

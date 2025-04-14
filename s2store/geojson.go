@@ -14,8 +14,8 @@ func (s *S2Store) ToGeoJson() *geojson.FeatureCollection {
 
 	points := s.index.GetLocations()
 
-	s.Stat.PointsFinal = 0
-	s.Stat.EdgesFinal = 0
+	s.stat.PointsFinal = 0
+	s.stat.EdgesFinal = 0
 
 	if s.cfg.ShowPoints {
 
@@ -33,7 +33,7 @@ func (s *S2Store) ToGeoJson() *geojson.FeatureCollection {
 			collection.AddFeature(pnt)
 		}
 
-		s.Stat.PointsRendered = int64(len(points))
+		s.stat.PointsRendered = int64(len(points))
 	}
 
 	if s.cfg.ShowEdges {
@@ -75,17 +75,17 @@ func (s *S2Store) ToGeoJson() *geojson.FeatureCollection {
 
 				collection.AddFeature(line)
 
-				s.Stat.SegmentsRendered++
+				s.stat.SegmentsRendered++
 			}
 		} else {
 			for _, edge := range s.edges {
 
-				p1, p1ok := points[edge.Points[0]]
-				p2, p2ok := points[edge.Points[1]]
+				p1, p1ok := points[edge.Id.P1]
+				p2, p2ok := points[edge.Id.P2]
 
 				// of some of the points were not found -> inconsistent data
 				if !p1ok || !p2ok {
-					log.Exitf("inconsistent data, some edge points where not found %d %d", edge.Points[0], edge.Points[1])
+					log.Exitf("inconsistent data, some edge points where not found %d %d", edge.Id.P1, edge.Id.P2)
 				}
 
 				edgeCoordinates := [][]float64{
@@ -99,11 +99,11 @@ func (s *S2Store) ToGeoJson() *geojson.FeatureCollection {
 				// TODO: line.SetProperty("count", edge.Count)
 
 				collection.AddFeature(line)
-				s.Stat.EdgesRendered++
+				s.stat.EdgesRendered++
 			}
 		}
 
-		s.Stat.EdgesFinal = int64(len(s.edges))
+		s.stat.EdgesFinal = int64(len(s.edges))
 	}
 
 	return collection

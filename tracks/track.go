@@ -1,76 +1,70 @@
 package tracks
 
 import (
-	"encoding/json"
-	"fmt"
 	"mnezerka/geonet/log"
 	"mnezerka/geonet/utils"
-	"os"
 
 	"github.com/mnezerka/gpxcli/gpxutils"
 	"github.com/tkrajina/gpxgo/gpx"
 )
 
+const ns = "http://geonet.bluesoft"
+
+type TrackMeta struct {
+	TrackId    string `json:"track_id" bson:"track_id"`
+	TrackUrl   string `json:"track_url" bson:"track_url"`
+	TrackTitle string `json:"track_title" bson:"track_title"`
+	SourceUrl  string `json:"source_url" bson:"source_url"`
+	SourceType string `json:"source_type" bson:"source_type"`
+	PostTitle  string `json:"post_title" bson:"post_title"`
+	PostUrl    string `json:"post_url" bson:"post_url"`
+}
 type Track struct {
-	FilePath     string
-	FilePathMeta string
-	Meta         TrackMeta
-	Points       []gpx.GPXPoint
-	gpxFile      *gpx.GPX
+	FilePath string
+	Meta     TrackMeta
+	Points   []gpx.GPXPoint
+	gpxFile  *gpx.GPX
 }
 
 func NewTrack(filePath string) *Track {
 	t := Track{FilePath: filePath}
 
-	t.FilePathMeta = utils.SetExtension(t.FilePath, "json")
-
 	t.ReadPoints()
 
-	t.ReadMeta()
+	// load data from xml extension
+	if node, found := t.gpxFile.MetadataExtensions.GetNode(ns, "trackid"); found {
+		t.Meta.TrackId = node.Data
+	}
+
+	if node, found := t.gpxFile.MetadataExtensions.GetNode(ns, "tracktitle"); found {
+		t.Meta.TrackTitle = node.Data
+	}
+
+	if node, found := t.gpxFile.MetadataExtensions.GetNode(ns, "trackurl"); found {
+		t.Meta.TrackUrl = node.Data
+	}
+
+	if node, found := t.gpxFile.MetadataExtensions.GetNode(ns, "posttitle"); found {
+		t.Meta.PostTitle = node.Data
+	}
+
+	if node, found := t.gpxFile.MetadataExtensions.GetNode(ns, "posturl"); found {
+		t.Meta.PostUrl = node.Data
+	}
+
+	if node, found := t.gpxFile.MetadataExtensions.GetNode(ns, "sourcetype"); found {
+		t.Meta.SourceType = node.Data
+	}
+
+	if node, found := t.gpxFile.MetadataExtensions.GetNode(ns, "sourceurl"); found {
+		t.Meta.SourceUrl = node.Data
+	}
 
 	// compute fields if not read from meta
 	if len(t.Meta.TrackTitle) == 0 {
-		t.Meta.TrackTitle = t.GetTitleFromContent()
+		t.Meta.TrackTitle = getTitleFromGpxContent(t.gpxFile, utils.GetBasename(t.FilePath))
 	}
 	return &t
-}
-
-func (t *Track) ReadMeta() {
-
-	// do nothing if meta file doesn't exist
-	if !utils.FileExists(t.FilePathMeta) {
-		return
-	}
-
-	jsonFile, err := os.Open(t.FilePathMeta)
-	if err != nil {
-		panic(err)
-	}
-	defer jsonFile.Close()
-
-	err = json.NewDecoder(jsonFile).Decode(&t.Meta)
-	if err != nil {
-		panic(err)
-	}
-}
-
-func (t *Track) WriteMeta() {
-
-	file, err := os.Create(t.FilePathMeta)
-	if err != nil {
-		panic(fmt.Errorf("error creating the meta file: %s", err))
-	}
-	defer file.Close()
-
-	jsonData, err := json.MarshalIndent(t.Meta, "", "  ")
-	if err != nil {
-		panic(err)
-	}
-
-	_, err = file.Write(jsonData)
-	if err != nil {
-		panic(err)
-	}
 }
 
 func (t *Track) ReadPoints() {
@@ -96,17 +90,15 @@ func (t *Track) InterpolateDistance(distance int64) {
 	if err != nil {
 		panic(err)
 	}
-
-	log.Infof("points interpolated: %d", len(t.Points))
 }
 
-func (t *Track) GetTitleFromContent() string {
+func getTitleFromGpxContent(gpxFile *gpx.GPX, defaultValue string) string {
 	result := ""
 
-	if t.gpxFile != nil {
+	if gpxFile != nil {
 
 		// find first track with valid name
-		for _, track := range t.gpxFile.Tracks {
+		for _, track := range gpxFile.Tracks {
 			if len(track.Name) > 0 {
 				result = track.Name
 				break
@@ -114,13 +106,13 @@ func (t *Track) GetTitleFromContent() string {
 		}
 
 		if len(result) == 0 {
-			result = t.gpxFile.Name
+			result = gpxFile.Name
 		}
 	}
 
 	// if name was not inserted into gpx file, use filename
 	if len(result) == 0 {
-		result = utils.GetBasename(t.FilePath)
+		result = defaultValue
 	}
 
 	return result

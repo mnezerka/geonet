@@ -1,6 +1,10 @@
 package cmd
 
 import (
+	"mnezerka/geonet/config"
+	"mnezerka/geonet/log"
+	"mnezerka/geonet/s2store"
+
 	"github.com/spf13/cobra"
 )
 
@@ -8,37 +12,22 @@ var loadCmd = &cobra.Command{
 	Use:   "load FILEPATH",
 	Short: "Load complete geonet from json file",
 	Args:  cobra.ExactArgs(1),
-	RunE: func(cmd *cobra.Command, args []string) error {
+	Run: func(cmd *cobra.Command, args []string) {
 
-		/*
-			s := store.NewMongoStore(&config.Cfg)
-			defer func() { s.Close() }()
+		store := s2store.NewS2Store(&config.Cfg)
 
-			log.Infof("loading geonet from %s", args[0])
+		log.Infof("loading geonet from %s", args[0])
 
-			// Read the JSON file
-			file, err := os.Open(args[0])
-			if err != nil {
-				return err
-			}
-			defer file.Close()
+		store.Load(args[0])
 
-			var loadedData store.DbContent
+		processing(store)
 
-			// Decode the JSON file into the importData variable
-			decoder := json.NewDecoder(file)
-			err = decoder.Decode(&loadedData)
-			if err != nil {
-				return err
-			}
-
-			s.Import(&loadedData)
-		*/
-
-		return nil
+		log.Infof("statistics:")
+		store.GetStat().Print()
 	},
 }
 
 func init() {
+	addProcessingFlags(loadCmd)
 	rootCmd.AddCommand(loadCmd)
 }

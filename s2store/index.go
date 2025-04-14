@@ -9,16 +9,15 @@ import (
 )
 
 type Location struct {
-	Id        int64
-	Name      string
-	Lat       float64
-	Lng       float64
-	Tracks    []int64
-	Count     int
-	Begin     bool
-	End       bool
-	Crossing  bool
-	Processed bool
+	Id        int64   `json:"id"`
+	Lat       float64 `json:"lat"`
+	Lng       float64 `json:"lng"`
+	Tracks    []int64 `json:"tracks"`
+	Count     int     `json:"-"`
+	Begin     bool    `json:"begin"`
+	End       bool    `json:"end"`
+	Crossing  bool    `json:"crossing"`
+	Processed bool    `json:"-"`
 }
 
 type NearestResult struct {
@@ -88,11 +87,6 @@ func (si *SpatialIndex) Nearest(lat, lng float64, radiusMeters float64) []Neares
 	return results
 }
 
-/*
-* Usage:
-* loc := Location{"Brno", 49.195, 16.611}
-* index.Remove(loc)
- */
 func (si *SpatialIndex) Remove(loc *Location) {
 
 	cell := s2.CellIDFromLatLng(s2.LatLngFromDegrees(loc.Lat, loc.Lng)).Parent(si.level)
@@ -104,9 +98,10 @@ func (si *SpatialIndex) Remove(loc *Location) {
 
 	// Find and remove by exact match
 	for i, l := range locations {
-		if l.Lat == loc.Lat && l.Lng == loc.Lng && l.Name == loc.Name {
+		if l.Id == loc.Id {
 			// Remove from slice
-			si.data[cell] = append(locations[:i], locations[i+1:]...)
+			//si.data[cell] = append(locations[:i], locations[i+1:]...)
+			si.data[cell] = slices.Delete(locations, i, i+1)
 			break
 		}
 	}
@@ -116,9 +111,6 @@ func (si *SpatialIndex) Remove(loc *Location) {
 		delete(si.data, cell)
 	}
 
-	// TODO: remove also from flat
-	// TODO: remove also from flat
-	// TODO: remove also from flat
 	delete(si.flat, loc.Id)
 }
 

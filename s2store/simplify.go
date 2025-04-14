@@ -30,8 +30,8 @@ func (s *S2Store) Simplify() {
 		s.adaptEdges(path, simplifiedPath)
 
 		// adapt statistics
-		s.Stat.SegmentsProcessed++
-		s.Stat.SegmentsSimplified++
+		s.stat.SegmentsProcessed++
+		s.stat.SegmentsSimplified++
 	}
 }
 
@@ -134,7 +134,7 @@ func (s *S2Store) adaptNetToEdge(beginId, endId int64, toRemoveIds []int64) {
 	}
 
 	// prepare final edge (create new or reuse existing)
-	finalEdgePoints := []int64{min(beginId, endId), max(beginId, endId)}
+	//finalEdgePoints := []int64{min(beginId, endId), max(beginId, endId)}
 	finalEdgeId := edgeIdFromPointIds(beginId, endId)
 
 	log.Debugf("final edge id: %v", finalEdgeId)
@@ -145,7 +145,6 @@ func (s *S2Store) adaptNetToEdge(beginId, endId int64, toRemoveIds []int64) {
 
 		finalEdge = &S2Edge{
 			Id:     finalEdgeId,
-			Points: finalEdgePoints,
 			Tracks: []int64{},
 			// Count: 0
 		}
@@ -182,11 +181,11 @@ func (s *S2Store) adaptNetToEdge(beginId, endId int64, toRemoveIds []int64) {
 	// delete redundant points
 	log.Debugf("points to be deleted %v", toRemoveIds)
 	s.index.RemoveByIds(toRemoveIds)
-	s.Stat.PointsSimplified += int64(len(toRemoveIds))
+	s.stat.PointsSimplified += int64(len(toRemoveIds))
 
 	// delete redundant edges
 	log.Debugf("edges to be deleted %v", edgeIdsToRemove)
 	s.removeEdgesByIds(edgeIdsToRemove)
-	s.Stat.EdgesSimplified += int64(len(edgeIdsToRemove))
+	s.stat.EdgesSimplified += int64(len(edgeIdsToRemove))
 
 }

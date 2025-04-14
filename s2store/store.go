@@ -17,15 +17,14 @@ import (
 const NIL_ID = -1
 
 type S2EdgeKey struct {
-	P1 int64
-	P2 int64
+	P1 int64 `json:"p1"`
+	P2 int64 `json:"p2"`
 }
 
 type S2Edge struct {
-	Id        S2EdgeKey
-	Points    []int64
-	Tracks    []int64
-	Processed bool
+	Id        S2EdgeKey `json:"id"`
+	Tracks    []int64   `json:"tracks"`
+	Processed bool      `json:"-"`
 }
 
 type S2Store struct {
@@ -35,7 +34,7 @@ type S2Store struct {
 	lastTrackId int64
 	tracks      map[int64]*store.Track
 	edges       map[S2EdgeKey]*S2Edge
-	Stat        store.Stat
+	stat        store.Stat
 }
 
 func NewS2Store(cfg *config.Configuration) *S2Store {
@@ -44,7 +43,6 @@ func NewS2Store(cfg *config.Configuration) *S2Store {
 	s.cfg = cfg
 	s.index = NewSpatialIndex(15)
 	s.tracks = make(map[int64]*store.Track)
-	//s.edges = make(map[string]*S2Edge)
 	s.edges = make(map[S2EdgeKey]*S2Edge)
 
 	return &s
@@ -60,6 +58,10 @@ func (s *S2Store) GenTrackId() int64 {
 	return s.lastTrackId
 }
 
+func (s *S2Store) GetStat() store.Stat {
+	return s.stat
+}
+
 func (s *S2Store) AddGpx(track *tracks.Track) error {
 	var lastPointId int64 = NIL_ID
 	var finalPointId int64 = NIL_ID
@@ -73,12 +75,12 @@ func (s *S2Store) AddGpx(track *tracks.Track) error {
 
 	s.tracks[s2Track.Id] = &s2Track
 	log.Debugf("registered track %d", s2Track.Id)
-	s.Stat.TracksProcessed++
+	s.stat.TracksProcessed++
 
 	for i := 0; i < len(track.Points); i++ {
 
 		// --------------------  track point processing
-		s.Stat.PointsProcessed++
+		s.stat.PointsProcessed++
 
 		point := track.Points[i]
 		isBegin := i == 0
@@ -88,7 +90,7 @@ func (s *S2Store) AddGpx(track *tracks.Track) error {
 
 		if len(nearest) > 0 {
 			log.Debugf("reusing point %d %.1fm", nearest[0].Location.Id, nearest[0].DistanceMeters)
-			s.Stat.PointsReused++
+			s.stat.PointsReused++
 
 			// update isBeign, isEnd, tracks
 			nearest[0].Location.Begin = nearest[0].Location.Begin || isBegin
@@ -111,7 +113,7 @@ func (s *S2Store) AddGpx(track *tracks.Track) error {
 				End:    isEnd,
 			}
 			s.index.Add(&loc)
-			s.Stat.PointsCreated++
+			s.stat.PointsCreated++
 			finalPointId = loc.Id
 		}
 
@@ -128,16 +130,15 @@ func (s *S2Store) AddGpx(track *tracks.Track) error {
 			edge, ok := s.edges[edgeId]
 			if ok {
 				log.Debugf("reusing existing edge: %v", edgeId)
-				s.Stat.EdgesReused++
+				s.stat.EdgesReused++
 				if !slices.Contains(edge.Tracks, s2Track.Id) {
 					edge.Tracks = append(edge.Tracks, s2Track.Id)
 				}
 			} else {
 				log.Debugf("registering new edge: %v", edgeId)
-				s.Stat.EdgesCreated++
+				s.stat.EdgesCreated++
 				edge := S2Edge{
 					Id:     edgeId,
-					Points: []int64{edgeId.P1, edgeId.P2},
 					Tracks: []int64{s2Track.Id},
 				}
 				s.edges[edgeId] = &edge
