@@ -69,9 +69,18 @@ func (s *S2Store) ToGeoJson() *geojson.FeatureCollection {
 					line.SetProperty("id", fmt.Sprintf("%d-%d", path[0].Id, path[len(path)-1].Id))
 				}
 
-				line.SetProperty("tracks", path[0].Tracks)
+				// take tracks from first edge of the path as:
+				// - bounding points (begin, end) could be part of more tracks => incorrect set of tracks for our case
+				// - path could be 2 points long - just one edge
+				edge := s.getEdgeById(edgeIdFromPointIds(path[0].Id, path[1].Id))
+				if edge == nil {
+					log.Exitf("cannot find first edge of path %v", pointsToIds(path))
+				}
+				line.SetProperty("tracks", edge.Tracks)
 
 				// TODO: line.SetProperty("count", edge.Count)
+
+				log.Debugf("adding feature: %v", line)
 
 				collection.AddFeature(line)
 

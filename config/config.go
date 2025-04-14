@@ -29,5 +29,5 @@ var Cfg = Configuration{
 	ShowPoints:            false,
 	ShowEdges:             true,
 	ShowTrackColors:       false,
-	GeoJsonMergeEdges:     false,
+	GeoJsonMergeEdges:     true,
 }

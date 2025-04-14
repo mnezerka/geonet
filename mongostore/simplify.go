@@ -1,4 +1,4 @@
-package store
+package mongostore
 
 import (
 	"context"
@@ -7,11 +7,12 @@ import (
 
 	"mnezerka/geonet/log"
 
+	"mnezerka/geonet/config"
+
 	"github.com/mnezerka/gpxcli/gpxutils"
 	"github.com/tkrajina/gpxgo/gpx"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
-	"mnezerka/geonet/config"
 )
 
 var freeNotProcessedPointsFilter bson.M = bson.M{

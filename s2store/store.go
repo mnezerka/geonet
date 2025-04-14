@@ -1,11 +1,5 @@
 package s2store
 
-/*
-* Resources:
-* https://s2geometry.io/devguide/s2cell_hierarchy
-* sizes of cells at levels: https://s2geometry.io/resources/s2cell_statistics
-* s2 golang doc: github.com/golang/geo/s2
- */
 import (
 	"mnezerka/geonet/config"
 	"mnezerka/geonet/log"

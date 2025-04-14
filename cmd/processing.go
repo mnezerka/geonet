@@ -6,6 +6,7 @@ import (
 	"mnezerka/geonet/config"
 	"mnezerka/geonet/log"
 	"mnezerka/geonet/s2store"
+	"mnezerka/geonet/store"
 	"os"
 	"text/template"
 
@@ -45,31 +46,25 @@ func addProcessingFlags(cmd *cobra.Command) {
 	cmd.PersistentFlags().BoolVar(&processingSave, "save", false, "save geonet (json format)")
 }
 
-func processing(store *s2store.S2Store) {
+func processing(s2store *s2store.S2Store) {
 
 	if processingSimplify {
 		log.Infof("simplifying network")
-		store.Simplify()
+		s2store.Simplify()
 	}
 
 	if processingExport {
 		log.Infof("exporting network")
-		gJson := store.ToGeoJson()
 
-		strJson, err := json.MarshalIndent(gJson, "", " ")
-		if err != nil {
-			log.ExitWithError(err)
-		}
-
-		fmt.Print(string(strJson))
+		fmt.Print(string(store.Export(s2store)))
 	}
 
 	if processingRender {
-		render(store)
+		render(s2store)
 	}
 
 	if processingSave {
-		store.Save()
+		s2store.Save()
 	}
 }
 
