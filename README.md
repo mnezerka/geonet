@@ -8,44 +8,21 @@ Current state of the algorithm could be checkd on [Cases page](https://mnezerka.
 
 ## Usage
 
-Local setup:
+Generate geonet from gpx files in `data` directory. Save net in data.geonet
 ```bash
-docker-compose up -d
-export MONGODB_URI="mongodb://root:example@localhost:27017/"
-./geonet -h
+geonet gen data/*gpx --interpolate --simplify --save > data.geonet
+```
+
+Load net from file and generate html page:
+```bash
+geonet load data.geonet --export > data.json
 ```
 
 ## Algorithm
 
 - tracks are added one by one
 - for each track
-  - if the track is first, store all points and continue with next track
-  - go through track points one by one
-    - create new hull from point (PH)
-    - look for existing hull (H) which is close to the point
-    - if such hull exist, try to add it (merge hulls H and PH). If size of
-      joined hull is under predefined treshold, add point to H and update
-      metadata of H (point, track, etc.)
-    - if such hull doesn't exist, register new hull
-
-TODO: document line splitting part of algorithm
-
-
-
-## Data Structures
-
-### FDH
-
-FDH = Fixed Directional Hull, alternative, and I think more frequent term is
-k-DOP. (Not sure for what that stands for anymore)
-
-A suggestion: If you collect the fixed directions into a matrix, say, A; and if
-you make your points into column-vectors, say x^i; then the box coordinates
-come from the standard matrix multiplication of vectors A : x —> z by
-
-z^i = Ax^i
-
-In our case, z lives in R^8 (it is an 8-D column-vector), A is the 8x2 matrix
-of fixed directions, and x comes from R^2 (it is a 2-D column-vector).
-
-
+  - for each point
+    - look for existing point which is nearby
+    - if such point exists, reuse it, else register as new point
+    - create edge for each newly registered point
