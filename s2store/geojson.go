@@ -80,8 +80,6 @@ func (s *S2Store) ToGeoJson() *geojson.FeatureCollection {
 
 				// TODO: line.SetProperty("count", edge.Count)
 
-				log.Debugf("adding feature: %v", line)
-
 				collection.AddFeature(line)
 
 				s.stat.SegmentsRendered++
