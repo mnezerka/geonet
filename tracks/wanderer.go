@@ -69,8 +69,8 @@ func WandererStoreTrackMeta(post *WandererPost, track *WandererTrack, sourceUrl 
 	fileName := utils.ConvertToSafeFilename(track.Url)
 	filePath := filepath.Join(dir, fileName)
 
-	log.Infof("  track file name      :%s", filePath)
-	log.Infof("  source url::%s", sourceUrl)
+	log.Debugf("  track file name      :%s", filePath)
+	log.Debugf("  source url::%s", sourceUrl)
 
 	// check if file exists in not-forced mode
 	if !force {
