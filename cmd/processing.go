@@ -24,6 +24,7 @@ type mapData struct {
 var processingRender bool
 var processingSimplify bool
 var processingExport bool
+var processingExportFormat string
 var processingSave bool
 
 func addProcessingFlags(cmd *cobra.Command) {
@@ -33,6 +34,7 @@ func addProcessingFlags(cmd *cobra.Command) {
 
 	// export
 	cmd.PersistentFlags().BoolVarP(&processingExport, "export", "e", false, "export final geonet to geojson")
+	cmd.PersistentFlags().StringVar(&processingExportFormat, "export-format", "json", "export format (json, geojson, svg)")
 
 	// rendering + export
 	cmd.PersistentFlags().BoolVar(&config.Cfg.ShowPoints, "points", config.Cfg.ShowPoints, "render individual points")
@@ -56,7 +58,16 @@ func processing(s2store *s2store.S2Store) {
 	if processingExport {
 		log.Infof("exporting network")
 
-		fmt.Print(string(store.Export(s2store)))
+		switch processingExportFormat {
+		case "svg":
+			fmt.Print(store.ExportSvg(s2store))
+			break
+		case "geojson":
+			fmt.Print(string(store.ExportGeoJson(s2store)))
+			break
+		default:
+			fmt.Print(string(store.Export(s2store)))
+		}
 	}
 
 	if processingRender {
@@ -71,7 +82,7 @@ func processing(s2store *s2store.S2Store) {
 func render(store *s2store.S2Store) {
 	log.Debug("------------ rendering geonet to html --------------")
 
-	collection := store.ToGeoJson()
+	collection := store.ToGeoJson(nil)
 
 	meta := store.GetMeta()
 
