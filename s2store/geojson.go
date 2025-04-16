@@ -8,7 +8,7 @@ import (
 	geojson "github.com/paulmach/go.geojson"
 )
 
-func (s *S2Store) ToGeoJson() *geojson.FeatureCollection {
+func (s *S2Store) ToGeoJson(each func(feature *geojson.Feature)) *geojson.FeatureCollection {
 
 	collection := geojson.NewFeatureCollection()
 
@@ -16,25 +16,6 @@ func (s *S2Store) ToGeoJson() *geojson.FeatureCollection {
 
 	s.stat.PointsFinal = 0
 	s.stat.EdgesFinal = 0
-
-	if s.cfg.ShowPoints {
-
-		for _, point := range points {
-
-			pnt := geojson.NewPointFeature([]float64{point.Lng, point.Lat})
-
-			pnt.SetProperty("id", point.Id)
-			pnt.SetProperty("tracks", point.Tracks)
-			pnt.SetProperty("begin", point.Begin)
-			pnt.SetProperty("end", point.End)
-			pnt.SetProperty("crossing", point.Crossing)
-			// TODO: pnt.SetProperty("count", point.Count)
-
-			collection.AddFeature(pnt)
-		}
-
-		s.stat.PointsRendered = int64(len(points))
-	}
 
 	if s.cfg.ShowEdges {
 
@@ -80,6 +61,10 @@ func (s *S2Store) ToGeoJson() *geojson.FeatureCollection {
 
 				// TODO: line.SetProperty("count", edge.Count)
 
+				if each != nil {
+					each(line)
+				}
+
 				collection.AddFeature(line)
 
 				s.stat.SegmentsRendered++
@@ -105,12 +90,39 @@ func (s *S2Store) ToGeoJson() *geojson.FeatureCollection {
 				line.SetProperty("tracks", edge.Tracks)
 				// TODO: line.SetProperty("count", edge.Count)
 
+				if each != nil {
+					each(line)
+				}
+
 				collection.AddFeature(line)
 				s.stat.EdgesRendered++
 			}
 		}
 
 		s.stat.EdgesFinal = int64(len(s.edges))
+	}
+
+	if s.cfg.ShowPoints {
+
+		for _, point := range points {
+
+			pnt := geojson.NewPointFeature([]float64{point.Lng, point.Lat})
+
+			pnt.SetProperty("id", point.Id)
+			pnt.SetProperty("tracks", point.Tracks)
+			pnt.SetProperty("begin", point.Begin)
+			pnt.SetProperty("end", point.End)
+			pnt.SetProperty("crossing", point.Crossing)
+			// TODO: pnt.SetProperty("count", point.Count)
+
+			if each != nil {
+				each(pnt)
+			}
+
+			collection.AddFeature(pnt)
+		}
+
+		s.stat.PointsRendered = int64(len(points))
 	}
 
 	return collection
