@@ -33,5 +33,5 @@ var Cfg = Configuration{
 	ShowTrackColors:       false,
 	GeoJsonMergeEdges:     true,
 	SvgWidth:              1000,
-	SvgHeight:             600,
+	SvgHeight:             1000,
 }
