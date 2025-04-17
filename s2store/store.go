@@ -98,15 +98,14 @@ func (s *S2Store) AddGpx(track *tracks.Track) error {
 			finalPointId = s.GenPointId()
 
 			log.Debugf("adding point %d", finalPointId)
-			loc := Location{
-				Id:     finalPointId,
-				Lat:    point.Latitude,
-				Lng:    point.Longitude,
-				Tracks: []int64{s2Track.Id},
-				Begin:  isBegin,
-				End:    isEnd,
-			}
-			s.index.Add(&loc)
+			loc := NewLocation()
+			loc.Id = finalPointId
+			loc.Lat = point.Latitude
+			loc.Lng = point.Longitude
+			loc.Tracks = []int64{s2Track.Id}
+			loc.Begin = isBegin
+			loc.End = isEnd
+			s.index.Add(loc)
 			s.stat.PointsCreated++
 			finalPointId = loc.Id
 		}
@@ -136,6 +135,25 @@ func (s *S2Store) AddGpx(track *tracks.Track) error {
 					Tracks: []int64{s2Track.Id},
 				}
 				s.edges[edgeId] = &edge
+
+				// add new edge to both corner locations
+				if loc := s.index.GetLocation(lastPointId); loc != nil {
+					if _, exists := loc.Edges[finalPointId]; !exists {
+						loc.Edges[finalPointId] = &edge
+						log.Debugf("loc: %d - %v", loc.Id, loc.Edges)
+					}
+				} else {
+					log.Exitf("inconsistent data, missing points for edge: %v", edgeId)
+				}
+
+				if loc := s.index.GetLocation(finalPointId); loc != nil {
+					if _, exists := loc.Edges[lastPointId]; !exists {
+						loc.Edges[lastPointId] = &edge
+						log.Debugf("loc: %d - %v", loc.Id, loc.Edges)
+					}
+				} else {
+					log.Exitf("inconsistent data, missing points for edge: %v", edgeId)
+				}
 
 				// new edge => some point could become a crossing
 				s.updateCrossingForEdgePoints(edgeId)

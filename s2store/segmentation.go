@@ -123,43 +123,18 @@ func (s *S2Store) getNextPoint(path []*Location, tracks []int64) *Location {
 	return nil
 }
 
+// get all neighbours of given point
 func (s *S2Store) findNeighbours(p Location, tracks []int64) []int64 {
 
 	log.Debugf("looking for neighbours (tracks limited to: %v) of point %d", tracks, p.Id)
 
 	var result []int64
 
-	edges := s.findPointEdges(p.Id, tracks)
-
-	// no edges found
-	if len(edges) == 0 {
-		return result
-	}
-
-	for i := 0; i < len(edges); i++ {
-		var newId int64
-		if edges[i].P1 == p.Id {
-			newId = edges[i].P2
-		} else {
-			newId = edges[i].P1
+	for neighbourId, edge := range p.Edges {
+		if edge.Processed || !slices.Equal(edge.Tracks, tracks) {
+			continue
 		}
-
-		if !slices.Contains(result, newId) {
-			result = append(result, newId)
-		}
-	}
-
-	return result
-}
-
-// look in not processed edges only
-func (s *S2Store) findPointEdges(id int64, tracks []int64) []S2EdgeKey {
-	result := []S2EdgeKey{}
-
-	for edgeId, edge := range s.edges {
-		if !edge.Processed && slices.Equal(edge.Tracks, tracks) && (edgeId.P1 == id || edgeId.P2 == id) {
-			result = append(result, edgeId)
-		}
+		result = append(result, neighbourId)
 	}
 
 	return result

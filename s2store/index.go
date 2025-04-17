@@ -9,15 +9,16 @@ import (
 )
 
 type Location struct {
-	Id        int64   `json:"id"`
-	Lat       float64 `json:"lat"`
-	Lng       float64 `json:"lng"`
-	Tracks    []int64 `json:"tracks"`
-	Count     int     `json:"-"`
-	Begin     bool    `json:"begin"`
-	End       bool    `json:"end"`
-	Crossing  bool    `json:"crossing"`
-	Processed bool    `json:"-"`
+	Id        int64             `json:"id"`
+	Lat       float64           `json:"lat"`
+	Lng       float64           `json:"lng"`
+	Tracks    []int64           `json:"tracks"`
+	Count     int               `json:"-"`
+	Begin     bool              `json:"begin"`
+	End       bool              `json:"end"`
+	Crossing  bool              `json:"crossing"`
+	Processed bool              `json:"-"`
+	Edges     map[int64]*S2Edge `json:"-"`
 }
 
 type NearestResult struct {
@@ -26,6 +27,12 @@ type NearestResult struct {
 }
 
 /////////////////////////////////////////////////////////// SpatialIndex
+
+func NewLocation() *Location {
+	l := &Location{}
+	l.Edges = make(map[int64]*S2Edge)
+	return l
+}
 
 type SpatialIndex struct {
 	data  map[s2.CellID][]*Location
