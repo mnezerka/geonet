@@ -5,7 +5,6 @@ import (
 	"mnezerka/geonet/log"
 	"mnezerka/geonet/store"
 	"mnezerka/geonet/tracks"
-	"slices"
 )
 
 const NIL_ID = -1
@@ -16,9 +15,15 @@ type S2EdgeKey struct {
 }
 
 type S2Edge struct {
-	Id        S2EdgeKey `json:"id"`
-	Tracks    []int64   `json:"tracks"`
-	Processed bool      `json:"-"`
+	Id        S2EdgeKey      `json:"id"`
+	Tracks    map[int64]bool `json:"tracks"`
+	Processed bool           `json:"-"`
+}
+
+func NewS2Edge() *S2Edge {
+	e := S2Edge{}
+	e.Tracks = make(map[int64]bool)
+	return &e
 }
 
 type S2Store struct {
@@ -89,9 +94,7 @@ func (s *S2Store) AddGpx(track *tracks.Track) error {
 			// update isBeign, isEnd, tracks
 			nearest[0].Location.Begin = nearest[0].Location.Begin || isBegin
 			nearest[0].Location.End = nearest[0].Location.End || isEnd
-			if !slices.Contains(nearest[0].Location.Tracks, s2Track.Id) {
-				nearest[0].Location.Tracks = append(nearest[0].Location.Tracks, s2Track.Id)
-			}
+			nearest[0].Location.Tracks[s2Track.Id] = true
 
 			finalPointId = nearest[0].Location.Id
 		} else {
@@ -102,7 +105,7 @@ func (s *S2Store) AddGpx(track *tracks.Track) error {
 			loc.Id = finalPointId
 			loc.Lat = point.Latitude
 			loc.Lng = point.Longitude
-			loc.Tracks = []int64{s2Track.Id}
+			loc.Tracks[s2Track.Id] = true
 			loc.Begin = isBegin
 			loc.End = isEnd
 			s.index.Add(loc)
@@ -124,36 +127,14 @@ func (s *S2Store) AddGpx(track *tracks.Track) error {
 			if ok {
 				log.Debugf("reusing existing edge: %v", edgeId)
 				s.stat.EdgesReused++
-				if !slices.Contains(edge.Tracks, s2Track.Id) {
-					edge.Tracks = append(edge.Tracks, s2Track.Id)
-				}
+				edge.Tracks[s2Track.Id] = true
 			} else {
 				log.Debugf("registering new edge: %v", edgeId)
 				s.stat.EdgesCreated++
-				edge := S2Edge{
-					Id:     edgeId,
-					Tracks: []int64{s2Track.Id},
-				}
-				s.edges[edgeId] = &edge
-
-				// add new edge to both corner locations
-				if loc := s.index.GetLocation(lastPointId); loc != nil {
-					if _, exists := loc.Edges[finalPointId]; !exists {
-						loc.Edges[finalPointId] = &edge
-						log.Debugf("loc: %d - %v", loc.Id, loc.Edges)
-					}
-				} else {
-					log.Exitf("inconsistent data, missing points for edge: %v", edgeId)
-				}
-
-				if loc := s.index.GetLocation(finalPointId); loc != nil {
-					if _, exists := loc.Edges[lastPointId]; !exists {
-						loc.Edges[lastPointId] = &edge
-						log.Debugf("loc: %d - %v", loc.Id, loc.Edges)
-					}
-				} else {
-					log.Exitf("inconsistent data, missing points for edge: %v", edgeId)
-				}
+				edge := NewS2Edge()
+				edge.Id = edgeId
+				edge.Tracks[s2Track.Id] = true
+				s.AddEdge(edge)
 
 				// new edge => some point could become a crossing
 				s.updateCrossingForEdgePoints(edgeId)
@@ -166,13 +147,36 @@ func (s *S2Store) AddGpx(track *tracks.Track) error {
 	return nil
 }
 
+func (s *S2Store) AddEdge(edge *S2Edge) {
+
+	log.Debugf("add new edge %v", edge.Id)
+
+	// add edge to flat list of edges
+	s.edges[edge.Id] = edge
+
+	// add edge to both corner locations
+	if loc := s.index.GetLocation(edge.Id.P1); loc != nil {
+		loc.Edges[edge.Id.P2] = edge
+	} else {
+		log.Exitf("inconsistent data, missing points for edge: %v", edge.Id)
+	}
+
+	if loc := s.index.GetLocation(edge.Id.P2); loc != nil {
+		loc.Edges[edge.Id.P1] = edge
+	} else {
+		log.Exitf("inconsistent data, missing points for edge: %v", edge.Id)
+	}
+
+}
+
 func (s *S2Store) GetEdgesFiltered(filter func(l *S2Edge) bool) []*S2Edge {
 	result := []*S2Edge{}
 
 	for _, edge := range s.edges {
-		if filter(edge) {
-			result = append(result, edge)
+		if filter != nil && !filter(edge) {
+			continue
 		}
+		result = append(result, edge)
 	}
 	return result
 }
@@ -201,8 +205,27 @@ func (s *S2Store) getEdgesForPointId(id int64) []*S2Edge {
 
 func (s *S2Store) removeEdgesByIds(ids []S2EdgeKey) {
 	for _, edgeId := range ids {
-		delete(s.edges, edgeId)
+		s.removeEdgeById(edgeId)
 	}
+}
+
+func (s *S2Store) removeEdgeById(edgeId S2EdgeKey) {
+
+	// delete from flat list of edges
+	delete(s.edges, edgeId)
+
+	// delete form corner points
+	l1 := s.index.GetLocation(edgeId.P1)
+	if l1 == nil {
+		log.Exitf("inconsistent data, location %d not found", edgeId.P1)
+	}
+	delete(l1.Edges, edgeId.P2)
+
+	l2 := s.index.GetLocation(edgeId.P2)
+	if l2 == nil {
+		log.Exitf("inconsistent data, location %d not found", edgeId.P2)
+	}
+	delete(l2.Edges, edgeId.P1)
 }
 
 func (s *S2Store) updateCrossingForEdgePoints(edgeId S2EdgeKey) {

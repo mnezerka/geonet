@@ -3,6 +3,7 @@ package s2store
 import (
 	"fmt"
 	"mnezerka/geonet/log"
+	"mnezerka/geonet/utils"
 	"strings"
 
 	geojson "github.com/paulmach/go.geojson"
@@ -57,7 +58,7 @@ func (s *S2Store) ToGeoJson(each func(feature *geojson.Feature)) *geojson.Featur
 				if edge == nil {
 					log.Exitf("cannot find first edge of path %v", pointsToIds(path))
 				}
-				line.SetProperty("tracks", edge.Tracks)
+				line.SetProperty("tracks", utils.MapKeys(edge.Tracks))
 
 				// TODO: line.SetProperty("count", edge.Count)
 
@@ -87,7 +88,7 @@ func (s *S2Store) ToGeoJson(each func(feature *geojson.Feature)) *geojson.Featur
 
 				line := geojson.NewLineStringFeature(edgeCoordinates)
 				line.SetProperty("id", edgeIdToString(edge.Id))
-				line.SetProperty("tracks", edge.Tracks)
+				line.SetProperty("tracks", utils.MapKeys(edge.Tracks))
 				// TODO: line.SetProperty("count", edge.Count)
 
 				if each != nil {
@@ -109,7 +110,7 @@ func (s *S2Store) ToGeoJson(each func(feature *geojson.Feature)) *geojson.Featur
 			pnt := geojson.NewPointFeature([]float64{point.Lng, point.Lat})
 
 			pnt.SetProperty("id", point.Id)
-			pnt.SetProperty("tracks", point.Tracks)
+			pnt.SetProperty("tracks", utils.MapKeys(point.Tracks))
 			pnt.SetProperty("begin", point.Begin)
 			pnt.SetProperty("end", point.End)
 			pnt.SetProperty("crossing", point.Crossing)

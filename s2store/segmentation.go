@@ -25,7 +25,6 @@ func (s *S2Store) getNextFreeSegment() []*Location {
 	log.Debugf("free edge: %v, setting processed -> true", freeEdge.Id)
 	freeEdge.Processed = true
 	freeEdgeTracks := freeEdge.Tracks
-	slices.Sort(freeEdgeTracks) // normalization is necessary for smooth comparison of slices
 
 	// Tone: searching of next points and edges have to be limited by freeEdgeTracks to
 	// properly handle cases, when track B follows track A, but changes direction
@@ -72,7 +71,7 @@ func (s *S2Store) getNextFreeSegment() []*Location {
 	return path
 }
 
-func (s *S2Store) getNextPoint(path []*Location, tracks []int64) *Location {
+func (s *S2Store) getNextPoint(path []*Location, tracks map[int64]bool) *Location {
 
 	// nothing to do if path is empty
 	if len(path) == 0 {
@@ -124,14 +123,14 @@ func (s *S2Store) getNextPoint(path []*Location, tracks []int64) *Location {
 }
 
 // get all neighbours of given point
-func (s *S2Store) findNeighbours(p Location, tracks []int64) []int64 {
+func (s *S2Store) findNeighbours(p Location, tracks map[int64]bool) []int64 {
 
 	log.Debugf("looking for neighbours (tracks limited to: %v) of point %d", tracks, p.Id)
 
 	var result []int64
 
 	for neighbourId, edge := range p.Edges {
-		if edge.Processed || !slices.Equal(edge.Tracks, tracks) {
+		if edge.Processed || !utils.MapsEqual(edge.Tracks, tracks) {
 			continue
 		}
 		result = append(result, neighbourId)

@@ -2,6 +2,7 @@ package s2store
 
 import (
 	"mnezerka/geonet/log"
+	"mnezerka/geonet/utils"
 	"strconv"
 
 	"github.com/mnezerka/gpxcli/gpxutils"
@@ -9,7 +10,8 @@ import (
 )
 
 func (s *S2Store) Simplify() {
-	log.Debug("========== simplification ===========")
+	log.Debug("======================== simplify =========================")
+	log.Debugf("minimal simplify distance: %d", s.cfg.SimplifyMinDistance)
 
 	// reset all points to not processed state to be sure we start with clean setup
 	//s.index.SetLocationsNotProcessed()
@@ -87,6 +89,10 @@ func simplifyPath(path []*Location, minDistance int64) []int64 {
 	return result
 }
 
+/*
+path:              1 --------2 -------- 3 -- 4 --------- 5 ----6
+simplifiedPathIds: 1 ------------------------------------------6
+*/
 func (s *S2Store) adaptEdges(path []*Location, simplifiedPathIds []int64) {
 	var beginId int64 = NIL_ID
 	var lastIx = 0
@@ -126,7 +132,7 @@ func (s *S2Store) adaptEdges(path []*Location, simplifiedPathIds []int64) {
 
 func (s *S2Store) adaptNetToEdge(beginId, endId int64, toRemoveIds []int64) {
 
-	log.Debugf("---------- adapt net to edge %d %d -----------", beginId, endId)
+	log.Debugf("---------- adapt net to edge %d-%d + remove points %v -----------", beginId, endId, toRemoveIds)
 
 	if len(toRemoveIds) == 0 {
 		log.Debugf("noting to remove for begin: %d and end: %d", beginId, endId)
@@ -134,7 +140,6 @@ func (s *S2Store) adaptNetToEdge(beginId, endId int64, toRemoveIds []int64) {
 	}
 
 	// prepare final edge (create new or reuse existing)
-	//finalEdgePoints := []int64{min(beginId, endId), max(beginId, endId)}
 	finalEdgeId := edgeIdFromPointIds(beginId, endId)
 
 	log.Debugf("final edge id: %v", finalEdgeId)
@@ -143,17 +148,17 @@ func (s *S2Store) adaptNetToEdge(beginId, endId int64, toRemoveIds []int64) {
 	if finalEdge == nil {
 		log.Debugf("creating new final edge, id: %v", finalEdgeId)
 
-		finalEdge = &S2Edge{
-			Id:     finalEdgeId,
-			Tracks: []int64{},
-			// Count: 0
-		}
+		finalEdge = NewS2Edge()
+		finalEdge.Id = finalEdgeId
+		s.AddEdge(finalEdge)
+
 		s.edges[finalEdgeId] = finalEdge
 	} else {
 		log.Debugf("reusing existing edge, id: %v", finalEdgeId)
 	}
 
-	// get first edge to be removed
+	// get first edge which is planned to be removed to have source
+	// of attributes (e.g. list of tracks) to be assigned to final edge
 	firstEdgeId := edgeIdFromPointIds(beginId, toRemoveIds[0])
 	log.Debugf("first edge (to be removed) id:: %v", firstEdgeId)
 	firstEdge := s.getEdgeById(firstEdgeId)
@@ -162,30 +167,29 @@ func (s *S2Store) adaptNetToEdge(beginId, endId int64, toRemoveIds []int64) {
 		log.Exitf("edge %v not found", firstEdgeId)
 	}
 
-	// update final edge with properties of the first edge, copying slices is important
+	// update final edge with properties of the first edge
 	log.Debugf("tracks before merge: %v %v", finalEdge.Tracks, firstEdge.Tracks)
-	finalEdge.Tracks = append(finalEdge.Tracks, firstEdge.Tracks...)
+	utils.MapsMerge(finalEdge.Tracks, firstEdge.Tracks)
 	log.Debugf("merged tracks: %v", finalEdge.Tracks)
 
-	//finalEdge.Count = firstEdge.Count
-
-	// delete all edges
+	// delete all edges one by one
 	var allIds = append(append([]int64{beginId}, toRemoveIds...), endId)
 	var edgeIdsToRemove []S2EdgeKey
 	log.Debugf("all ids: %v", allIds)
+
 	for i := 1; i < len(allIds); i++ {
 		edgeId := edgeIdFromPointIds(allIds[i-1], allIds[i])
 		edgeIdsToRemove = append(edgeIdsToRemove, edgeId)
 	}
 
-	// delete redundant points
-	log.Debugf("points to be deleted %v", toRemoveIds)
-	s.index.RemoveByIds(toRemoveIds)
-	s.stat.PointsSimplified += int64(len(toRemoveIds))
-
 	// delete redundant edges
 	log.Debugf("edges to be deleted %v", edgeIdsToRemove)
 	s.removeEdgesByIds(edgeIdsToRemove)
 	s.stat.EdgesSimplified += int64(len(edgeIdsToRemove))
+
+	// delete redundant points
+	log.Debugf("points to be deleted %v", toRemoveIds)
+	s.index.RemoveByIds(toRemoveIds)
+	s.stat.PointsSimplified += int64(len(toRemoveIds))
 
 }

@@ -8,7 +8,6 @@ import (
 	"mnezerka/geonet/log"
 	"mnezerka/geonet/svg"
 	"mnezerka/geonet/tracks"
-	"strings"
 
 	geojson "github.com/paulmach/go.geojson"
 )
@@ -99,7 +98,7 @@ func ExportSvg(store Store) string {
 					return
 				}
 
-				tracksStr := strings.Trim(strings.Join(strings.Fields(fmt.Sprint(tracks)), ","), "[]")
+				trackIds := tracks.([]int64)
 
 				// add text
 				ps := feature.Geometry.LineString
@@ -111,7 +110,7 @@ func ExportSvg(store Store) string {
 
 					midX := (x1 + x2) / 2
 					midY := (y1 + y2) / 2
-					fmt.Fprintf(w, `<text x="%f" y="%f">%s</text>`, midX, midY, tracksStr)
+					fmt.Fprintf(w, `<text x="%f" y="%f">%v</text>`, midX, midY, trackIds)
 				}
 
 			}

@@ -1,6 +1,8 @@
 package s2store
 
 import (
+	"mnezerka/geonet/utils"
+
 	"github.com/jedib0t/go-pretty/v6/table"
 )
 
@@ -9,16 +11,6 @@ func boolToStr(x bool) string {
 		return "X"
 	}
 	return ""
-}
-
-func mapKeys(m map[int64]*S2Edge) []int64 {
-	result := []int64{}
-
-	for key := range m {
-		result = append(result, key)
-	}
-
-	return result
 }
 
 func (s *S2Store) ToTxt() string {
@@ -33,8 +25,8 @@ func (s *S2Store) ToTxt() string {
 
 		t.AppendRow(table.Row{
 			point.Id,
-			point.Tracks,
-			mapKeys(point.Edges),
+			utils.MapKeys(point.Tracks),
+			utils.MapKeys(point.Edges),
 			boolToStr(point.Begin),
 			boolToStr(point.End),
 			boolToStr(point.Crossing),

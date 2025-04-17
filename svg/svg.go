@@ -321,6 +321,9 @@ func makeScaleFunc(width, height float64, padding Padding, ps [][]float64) Scale
 		minY = math.Min(minY, p[1])
 		maxY = math.Max(maxY, p[1])
 	}
+
+	// TODO: correction for features (texts added by custom decorators)
+
 	xRes := (maxX - minX) / w
 	yRes := (maxY - minY) / h
 	res := math.Max(xRes, yRes)

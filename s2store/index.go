@@ -12,7 +12,7 @@ type Location struct {
 	Id        int64             `json:"id"`
 	Lat       float64           `json:"lat"`
 	Lng       float64           `json:"lng"`
-	Tracks    []int64           `json:"tracks"`
+	Tracks    map[int64]bool    `json:"tracks"`
 	Count     int               `json:"-"`
 	Begin     bool              `json:"begin"`
 	End       bool              `json:"end"`
@@ -31,6 +31,7 @@ type NearestResult struct {
 func NewLocation() *Location {
 	l := &Location{}
 	l.Edges = make(map[int64]*S2Edge)
+	l.Tracks = make(map[int64]bool)
 	return l
 }
 

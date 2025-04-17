@@ -2,7 +2,6 @@ package s2store
 
 import (
 	"mnezerka/geonet/config"
-	"mnezerka/geonet/log"
 	"mnezerka/geonet/tracks"
 	"testing"
 
@@ -35,7 +34,7 @@ func TestSegmentSingleTrack(t *testing.T) {
 
 func TestSegmentTwoTracks(t *testing.T) {
 
-	log.SetVerbosity(log.LOG_LEVEL_DEBUG)
+	//log.SetVerbosity(log.LOG_LEVEL_DEBUG)
 
 	s := NewS2Store(&config.Cfg)
 
