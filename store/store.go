@@ -24,6 +24,7 @@ type Meta struct {
 
 type Store interface {
 	ToGeoJson(func(feature *geojson.Feature)) *geojson.FeatureCollection
+	ToTxt() string
 	GetMeta() Meta
 }
 
@@ -114,6 +115,26 @@ func ExportSvg(store Store) string {
 				}
 
 			}
+			if feature.Geometry.Type == "Point" {
+
+				id, exists := feature.Properties["id"]
+				if !exists {
+					return
+				}
+
+				// add text
+				ps := feature.Geometry.Point
+
+				// text in the  middle of the first line segment
+				if len(ps) > 1 {
+					x, y := sf(ps[0], ps[1])
+					x += 10
+					y += 10
+					fmt.Fprintf(w, `<text x="%f" y="%f">P%d</text>`, x, y, id)
+				}
+
+			}
+
 		}),
 	)
 	return got

@@ -29,12 +29,9 @@ var processingSave bool
 
 func addProcessingFlags(cmd *cobra.Command) {
 
-	// rendering
-	cmd.PersistentFlags().BoolVar(&processingRender, "render", false, "render final geonet to html page")
-
 	// export
 	cmd.PersistentFlags().BoolVarP(&processingExport, "export", "e", false, "export final geonet to geojson")
-	cmd.PersistentFlags().StringVar(&processingExportFormat, "export-format", "json", "export format (json, geojson, svg)")
+	cmd.PersistentFlags().StringVar(&processingExportFormat, "export-format", "json", "export format (json, geojson, svg, txt)")
 
 	// rendering + export
 	cmd.PersistentFlags().BoolVar(&config.Cfg.ShowPoints, "points", config.Cfg.ShowPoints, "render individual points")
@@ -65,13 +62,16 @@ func processing(s2store *s2store.S2Store) {
 		case "geojson":
 			fmt.Print(string(store.ExportGeoJson(s2store)))
 			break
+		case "txt":
+			fmt.Print(s2store.ToTxt())
+			break
+		case "html":
+			render(s2store)
+			break
+
 		default:
 			fmt.Print(string(store.Export(s2store)))
 		}
-	}
-
-	if processingRender {
-		render(s2store)
 	}
 
 	if processingSave {
