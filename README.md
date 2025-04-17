@@ -11,8 +11,8 @@ Demostration on set of four GPS tracks located int the same area:
 
 <img src="doc/images/overview_tracks.svg" width="600px"/>
 
-All tracks processed nad merged into one network (see number added to each
-segment which denotes, which tracks where merged):
+All tracks processed nad merged into one network (numbers attached to each
+segment denote which tracks where merged):
 
 <img src="doc/images/overview_geonet.svg" width="600px"/>
 
@@ -35,8 +35,6 @@ flowchart TD
   Export --> Geojson
   Export --> Json
   Export --> SVG
-
-background:transparent
 ```
 
 ## Usage
