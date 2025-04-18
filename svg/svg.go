@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"io"
 	"math"
+	"mnezerka/geonet/log"
 	"regexp"
 	"sort"
 	"strings"
@@ -61,7 +62,17 @@ func (svg *SVG) Draw(width, height float64, opts ...Option) string {
 		o(svg)
 	}
 
-	sf := makeScaleFunc(width, height, svg.padding, svg.points())
+	points := svg.points()
+	sf := makeScaleFunc(width, svg.padding, points)
+
+	bb := getBoundingBox(points)
+	log.Debugf("bounding box: %v", bb)
+	minX, minY := sf(bb[0], bb[1])
+	maxX, maxY := sf(bb[2], bb[3])
+	log.Debugf("bounding box recalculated: [%f %f][%v %v]", minX, minY, maxX, maxY)
+	// take minY instead of maxY due to scaling function, that reverses the Y axis coordinates (real world -> svg)
+	height = minY + svg.padding.Top + svg.padding.Bottom
+	log.Debugf("auto correcting height to: %f", height)
 
 	content := bytes.NewBufferString("")
 	for _, g := range svg.geometries {
@@ -299,7 +310,7 @@ func makeAttributesFromProperties(useProp func(string) bool, props map[string]in
 	return makeAttributes(attrs)
 }
 
-func makeScaleFunc(width, height float64, padding Padding, ps [][]float64) ScaleFunc {
+func makeScaleFunc(width float64, padding Padding, ps [][]float64) ScaleFunc {
 	w := width - padding.Left - padding.Right
 	h := width - padding.Top - padding.Bottom
 
@@ -309,6 +320,30 @@ func makeScaleFunc(width, height float64, padding Padding, ps [][]float64) Scale
 
 	if len(ps) == 1 {
 		return func(x, y float64) (float64, float64) { return w / 2, h / 2 }
+	}
+
+	bbox := getBoundingBox(ps)
+	minX := bbox[0]
+	minY := bbox[1]
+	maxX := bbox[2]
+	maxY := bbox[3]
+
+	xRes := (maxX - minX) / w
+	yRes := (maxY - minY) / h
+	res := math.Max(xRes, yRes)
+
+	log.Debugf("scaling func bounding box: minX=%f minY=%f maxX=%f maxY=%f", minX, minY, maxX, maxY)
+	log.Debugf("scaling func xRes=%f yRes=%f res: %f", xRes, yRes, res)
+
+	return func(x, y float64) (float64, float64) {
+		return (x-minX)/res + padding.Left, (maxY-y)/res + padding.Top
+	}
+}
+
+func getBoundingBox(ps [][]float64) []float64 {
+
+	if len(ps) == 0 {
+		return []float64{0, 0, 0, 0}
 	}
 
 	minX := ps[0][0]
@@ -322,13 +357,5 @@ func makeScaleFunc(width, height float64, padding Padding, ps [][]float64) Scale
 		maxY = math.Max(maxY, p[1])
 	}
 
-	// TODO: correction for features (texts added by custom decorators)
-
-	xRes := (maxX - minX) / w
-	yRes := (maxY - minY) / h
-	res := math.Max(xRes, yRes)
-
-	return func(x, y float64) (float64, float64) {
-		return (x-minX)/res + padding.Left, (maxY-y)/res + padding.Top
-	}
+	return []float64{minX, minY, maxX, maxY}
 }
