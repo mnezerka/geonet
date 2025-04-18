@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"embed"
 	"encoding/json"
 	"fmt"
 	"mnezerka/geonet/config"
@@ -26,6 +27,8 @@ var processingSimplify bool
 var processingExport bool
 var processingExportFormat string
 var processingSave bool
+
+var templatesContent *embed.FS
 
 func addProcessingFlags(cmd *cobra.Command) {
 
@@ -79,6 +82,10 @@ func processing(s2store *s2store.S2Store) {
 	}
 }
 
+func SetTemplatesContent(content *embed.FS) {
+	templatesContent = content
+}
+
 func render(store *s2store.S2Store) {
 	log.Debug("------------ rendering geonet to html --------------")
 
@@ -98,16 +105,14 @@ func render(store *s2store.S2Store) {
 		log.ExitWithError(err)
 	}
 
-	var tmplFile = "templates/map.html"
-
 	// Load the template file
-	tmpl, err := template.ParseFiles(tmplFile)
+	htmlContent, err := template.ParseFS(templatesContent, "templates/map.html")
 	if err != nil {
 		log.ExitWithError(err)
 	}
 
 	// load js logic
-	jsContent, err := os.ReadFile("templates/map.js")
+	jsContent, err := templatesContent.ReadFile("templates/map.js")
 	if err != nil {
 		log.ExitWithError(err)
 	}
@@ -120,7 +125,7 @@ func render(store *s2store.S2Store) {
 		Js:             string(jsContent),
 	}
 
-	err = tmpl.Execute(os.Stdout, data)
+	err = htmlContent.Execute(os.Stdout, data)
 	if err != nil {
 		log.ExitWithError(err)
 	}
