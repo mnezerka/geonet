@@ -61,13 +61,16 @@ func (s *S2Store) Load(filePath string) {
 	}
 	s.stat.TracksLoaded = int64(len(fromJson.Tracks))
 
+	for _, l := range fromJson.Locations {
+		s.index.Add(l)
+		l.Edges = make(map[int64]*S2Edge)
+	}
+	s.stat.PointsLoaded = int64(len(fromJson.Locations))
+
 	for _, e := range fromJson.Edges {
-		s.edges[e.Id] = e
+
+		s.AddEdge(e)
 	}
 	s.stat.EdgesLoaded = int64(len(fromJson.Edges))
 
-	for _, l := range fromJson.Locations {
-		s.index.Add(l)
-	}
-	s.stat.PointsLoaded = int64(len(fromJson.Locations))
 }
