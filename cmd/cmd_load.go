@@ -22,6 +22,8 @@ var loadCmd = &cobra.Command{
 
 		processing(store)
 
+		export(store)
+
 		log.Infof("statistics:")
 		store.GetStat().Print()
 	},
@@ -29,5 +31,6 @@ var loadCmd = &cobra.Command{
 
 func init() {
 	addProcessingFlags(loadCmd)
+	addExportFlags(loadCmd)
 	rootCmd.AddCommand(loadCmd)
 }

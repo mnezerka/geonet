@@ -85,53 +85,57 @@ func ExportSvg(store Store) string {
 		svg.WithAttribute("xmlns", "http://www.w3.org/2000/svg"),
 		svg.UseProperties([]string{"style"}),
 		svg.WithPadding(svg.Padding{
-			Top:    10,
-			Right:  10,
-			Bottom: 10,
-			Left:   10,
+			Top:    float64(config.Cfg.SvgPadding),
+			Right:  float64(config.Cfg.SvgPadding),
+			Bottom: float64(config.Cfg.SvgPadding),
+			Left:   float64(config.Cfg.SvgPadding),
 		}),
 		svg.WithCustomDecorator(func(w io.Writer, sf svg.ScaleFunc, feature *geojson.Feature) {
 			if feature.Geometry.Type == "LineString" {
 
-				tracks, exists := feature.Properties["tracks"]
-				if !exists {
-					return
+				if config.Cfg.SvgEdgeLabels {
+
+					tracks, exists := feature.Properties["tracks"]
+					if !exists {
+						return
+					}
+
+					trackIds := tracks.([]int64)
+
+					// add text
+					ps := feature.Geometry.LineString
+
+					// text in the  middle of the first line segment
+					if len(ps) > 1 {
+						x1, y1 := sf(ps[0][0], ps[0][1])
+						x2, y2 := sf(ps[1][0], ps[1][1])
+
+						midX := (x1 + x2) / 2
+						midY := (y1 + y2) / 2
+						fmt.Fprintf(w, `<text x="%f" y="%f">%v</text>`, midX, midY, trackIds)
+					}
 				}
-
-				trackIds := tracks.([]int64)
-
-				// add text
-				ps := feature.Geometry.LineString
-
-				// text in the  middle of the first line segment
-				if len(ps) > 1 {
-					x1, y1 := sf(ps[0][0], ps[0][1])
-					x2, y2 := sf(ps[1][0], ps[1][1])
-
-					midX := (x1 + x2) / 2
-					midY := (y1 + y2) / 2
-					fmt.Fprintf(w, `<text x="%f" y="%f">%v</text>`, midX, midY, trackIds)
-				}
-
 			}
 			if feature.Geometry.Type == "Point" {
 
-				id, exists := feature.Properties["id"]
-				if !exists {
-					return
+				if config.Cfg.SvgPointLabels {
+
+					id, exists := feature.Properties["id"]
+					if !exists {
+						return
+					}
+
+					// add text
+					ps := feature.Geometry.Point
+
+					// text in the  middle of the first line segment
+					if len(ps) > 1 {
+						x, y := sf(ps[0], ps[1])
+						x += 10
+						y += 10
+						fmt.Fprintf(w, `<text x="%f" y="%f">P%d</text>`, x, y, id)
+					}
 				}
-
-				// add text
-				ps := feature.Geometry.Point
-
-				// text in the  middle of the first line segment
-				if len(ps) > 1 {
-					x, y := sf(ps[0], ps[1])
-					x += 10
-					y += 10
-					fmt.Fprintf(w, `<text x="%f" y="%f">P%d</text>`, x, y, id)
-				}
-
 			}
 
 		}),

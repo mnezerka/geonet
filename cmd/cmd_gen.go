@@ -47,6 +47,8 @@ var genCmd = &cobra.Command{
 
 		processing(store)
 
+		export(store)
+
 		log.Infof("statistics:")
 		store.GetStat().Print()
 
@@ -61,6 +63,8 @@ func init() {
 	genCmd.PersistentFlags().IntVar(&genCmdLimit, "limit", -1, "max number of tracks to be processed")
 
 	addProcessingFlags(genCmd)
+
+	addExportFlags(genCmd)
 
 	rootCmd.AddCommand(genCmd)
 }

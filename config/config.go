@@ -14,6 +14,9 @@ type Configuration struct {
 	GeoJsonMergeEdges     bool  // export edge segments ans continuous line instead of individual lines
 	SvgWidth              int
 	SvgHeight             int
+	SvgPadding            int
+	SvgPointLabels        bool
+	SvgEdgeLabels         bool
 }
 
 func (c *Configuration) ToString() string {
@@ -34,4 +37,7 @@ var Cfg = Configuration{
 	GeoJsonMergeEdges:     true,
 	SvgWidth:              1000,
 	SvgHeight:             1000,
+	SvgPadding:            50,
+	SvgPointLabels:        false,
+	SvgEdgeLabels:         true,
 }

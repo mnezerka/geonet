@@ -9,12 +9,12 @@ GeoNet is a library for generating net from multiple gps tracks.
 
 Demostration on set of four GPS tracks located int the same area:
 
-<img src="doc/images/overview_tracks.svg" width="600px"/>
+<img src="doc/images/overview_tracks.svg" width="800px"/>
 
 All tracks processed nad merged into one network (numbers attached to each
 segment denote which tracks where merged):
 
-<img src="doc/images/overview_geonet.svg" width="600px"/>
+<img src="doc/images/overview_geonet.svg" width="800px"/>
 
 Overview of the processing flow:
 
@@ -66,7 +66,7 @@ distance in meters affects searching of existing points which are nearby.
 
 Source tracks:
 
-<img src="doc/images/matching_tracks.svg" width="600px"/>
+<img src="doc/images/matching_tracks.svg" width="800px"/>
 
 Matching distance 1 meter:
 
@@ -74,7 +74,7 @@ Matching distance 1 meter:
 ./geonet gen files --match-max-dist 1
 ```
 
-<img src="doc/images/matching_1.svg" width="600px"/>
+<img src="doc/images/matching_1.svg" width="800px"/>
 
 Matching distance 5 meters:
 
@@ -82,7 +82,7 @@ Matching distance 5 meters:
 ./geonet gen files --match-max-dist 5
 ```
 
-<img src="doc/images/matching_5.svg" width="600px"/>
+<img src="doc/images/matching_5.svg" width="800px"/>
 
 Matching distance 10 meters:
 
@@ -90,7 +90,7 @@ Matching distance 10 meters:
 ./geonet gen files --match-max-dist 10
 ```
 
-<img src="doc/images/matching_10.svg" width="600px"/>
+<img src="doc/images/matching_10.svg" width="800px"/>
 
 Matching distance 50 meters:
 
@@ -98,7 +98,7 @@ Matching distance 50 meters:
 ./geonet gen files --match-max-dist 50
 ```
 
-<img src="doc/images/matching_50.svg" width="600px"/>
+<img src="doc/images/matching_50.svg" width="800px"/>
 
 
 ### Interpolation
@@ -111,7 +111,7 @@ geonet gen files --interpolate --int-dist 10
 
 Source track:
 
-<img src="doc/images/interpolation_track.svg" width="600px"/>
+<img src="doc/images/interpolation_track.svg" width="800px"/>
 
 Track after interpolation to 10 meters:
 
@@ -119,7 +119,7 @@ Track after interpolation to 10 meters:
 geonet gen files --interpolate --int-dist 10
 ```
 
-<img src="doc/images/interpolation_10.svg" width="600px"/>
+<img src="doc/images/interpolation_10.svg" width="800px"/>
 
 Track after interpolation to 30 meters:
 
@@ -127,7 +127,7 @@ Track after interpolation to 30 meters:
 geonet gen files --interpolate --int-dist 30
 ```
 
-<img src="doc/images/interpolation_30.svg" width="600px"/>
+<img src="doc/images/interpolation_30.svg" width="800px"/>
 
 ### Simplify
 
@@ -141,7 +141,7 @@ between points. Use `--match-max-dist 1` to avoid impac of matching algorithm to
 
 Source track:
 
-<img src="doc/images/simplify_track.svg" width="600px"/>
+<img src="doc/images/simplify_track.svg" width="800px"/>
 
 Track after simplification to 10 meters:
 
@@ -149,14 +149,14 @@ Track after simplification to 10 meters:
 geonet gen files --match-max-dist 1 --simplify --sim-min-dist 10
 ```
 
-<img src="doc/images/simplify_10.svg" width="600px"/>
+<img src="doc/images/simplify_10.svg" width="800px"/>
 
 Track after simplification to 50 meters:
 
 ```bash
 geonet gen files --match-max-dist 1 --simplify --sim-min-dist 50
 ```
-<img src="doc/images/simplify_50.svg" width="600px"/>
+<img src="doc/images/simplify_50.svg" width="800px"/>
 
 
 
