@@ -9,25 +9,33 @@ import (
 )
 
 type S2StoreJson struct {
-	Tracks    []*store.Track `json:"tracks"`
-	Edges     []*S2Edge      `json:"edges"`
-	Locations []*Location    `json:"locations"`
+	Tracks      []*store.Track `json:"tracks"`
+	Edges       []*S2Edge      `json:"edges"`
+	Locations   []*Location    `json:"locations"`
+	LastPointId int64          `json:"last-point-id"`
+	LastTrackId int64          `json:"last-track-id"`
 }
 
 func (s *S2Store) Save() {
 
 	toJson := S2StoreJson{}
 
+	toJson.LastPointId = s.lastPointId
+	toJson.LastTrackId = s.lastTrackId
+
 	for _, t := range s.tracks {
 		toJson.Tracks = append(toJson.Tracks, t)
+		s.stat.TracksRendered = int64(len(s.tracks))
 	}
 
 	for _, e := range s.edges {
 		toJson.Edges = append(toJson.Edges, e)
+		s.stat.EdgesRendered = int64(len(s.edges))
 	}
 
 	for _, l := range s.index.flat {
 		toJson.Locations = append(toJson.Locations, l)
+		s.stat.PointsRendered = int64(len(s.index.flat))
 	}
 
 	// meta - json
@@ -73,4 +81,6 @@ func (s *S2Store) Load(filePath string) {
 	}
 	s.stat.EdgesLoaded = int64(len(fromJson.Edges))
 
+	s.lastPointId = fromJson.LastPointId
+	s.lastTrackId = fromJson.LastTrackId
 }

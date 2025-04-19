@@ -6,7 +6,7 @@ import (
 
 var fetchCmd = &cobra.Command{
 	Use:   "fetch",
-	Short: "Fetch date from various sources",
+	Short: "Fetch input data (gpx tracks) from various sources",
 }
 
 func init() {

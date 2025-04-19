@@ -41,12 +41,12 @@ flowchart TD
 
 Generate geonet from gpx files in `data` directory. Save net in data.geonet
 ```bash
-geonet gen data/*gpx --interpolate --simplify --save > data.geonet
+geonet net data/*gpx --interpolate --save > data.geonet
 ```
 
 Load net from file and generate html page:
 ```bash
-geonet load data.geonet --export > data.json
+geonet net --load data.geonet --simplify --export > data.json
 ```
 
 ### Matching
@@ -71,7 +71,7 @@ Source tracks:
 Matching distance 1 meter:
 
 ```bash
-./geonet gen files --match-max-dist 1
+./geonet net files --match-max-dist 1
 ```
 
 <img src="doc/images/matching_1.svg" width="800px"/>
@@ -79,7 +79,7 @@ Matching distance 1 meter:
 Matching distance 5 meters:
 
 ```bash
-./geonet gen files --match-max-dist 5
+./geonet net files --match-max-dist 5
 ```
 
 <img src="doc/images/matching_5.svg" width="800px"/>
@@ -87,7 +87,7 @@ Matching distance 5 meters:
 Matching distance 10 meters:
 
 ```bash
-./geonet gen files --match-max-dist 10
+./geonet net files --match-max-dist 10
 ```
 
 <img src="doc/images/matching_10.svg" width="800px"/>
@@ -95,7 +95,7 @@ Matching distance 10 meters:
 Matching distance 50 meters:
 
 ```bash
-./geonet gen files --match-max-dist 50
+./geonet net files --match-max-dist 50
 ```
 
 <img src="doc/images/matching_50.svg" width="800px"/>
@@ -106,7 +106,7 @@ Matching distance 50 meters:
 Interpolation is an optional preprocessing step that adjusts track points before the track is integrated into the network.
 
 ```bash
-geonet gen files --interpolate --int-dist 10
+geonet net files --interpolate --int-dist 10
 ```
 
 Source track:
@@ -116,7 +116,7 @@ Source track:
 Track after interpolation to 10 meters:
 
 ```bash
-geonet gen files --interpolate --int-dist 10
+geonet net files --interpolate --int-dist 10
 ```
 
 <img src="doc/images/interpolation_10.svg" width="800px"/>
@@ -124,7 +124,7 @@ geonet gen files --interpolate --int-dist 10
 Track after interpolation to 30 meters:
 
 ```bash
-geonet gen files --interpolate --int-dist 30
+geonet net files --interpolate --int-dist 30
 ```
 
 <img src="doc/images/interpolation_30.svg" width="800px"/>
@@ -146,7 +146,7 @@ Source track:
 Track after simplification to 10 meters:
 
 ```bash
-geonet gen files --match-max-dist 1 --simplify --sim-min-dist 10
+geonet net files --match-max-dist 1 --simplify --sim-min-dist 10
 ```
 
 <img src="doc/images/simplify_10.svg" width="800px"/>
@@ -154,7 +154,7 @@ geonet gen files --match-max-dist 1 --simplify --sim-min-dist 10
 Track after simplification to 50 meters:
 
 ```bash
-geonet gen files --match-max-dist 1 --simplify --sim-min-dist 50
+geonet net files --match-max-dist 1 --simplify --sim-min-dist 50
 ```
 <img src="doc/images/simplify_50.svg" width="800px"/>
 

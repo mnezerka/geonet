@@ -18,6 +18,10 @@ var (
 
 var rootCmd = &cobra.Command{
 	Use: "geonet utility",
+	CompletionOptions: cobra.CompletionOptions{
+		HiddenDefaultCmd: true, // hides cmd
+		// DisableDefaultCmd: true, // removes cmd
+	},
 }
 
 func Execute() {

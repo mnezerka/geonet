@@ -79,7 +79,7 @@ func Errorf(format string, args ...interface{}) {
 }
 
 func WithError(err error) {
-	fmt.Fprintf(os.Stderr, "%s", err)
+	fmt.Fprintf(os.Stderr, "%s\n", err)
 }
 
 func ExitWithError(err error) {

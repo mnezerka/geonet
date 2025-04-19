@@ -79,7 +79,7 @@ func (s *S2Store) AddGpx(track *tracks.Track) error {
 	for i := 0; i < len(track.Points); i++ {
 
 		// --------------------  track point processing
-		s.stat.PointsProcessed++
+		s.stat.PointsGpx++
 
 		point := track.Points[i]
 		isBegin := i == 0
