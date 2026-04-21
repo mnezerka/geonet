@@ -154,3 +154,15 @@ func ExportGeoJson(store Store) []byte {
 
 	return bytesJson
 }
+
+func ExportMetadata(store Store) []byte {
+
+	metadata := store.GetMeta()
+
+	bytesJson, err := json.MarshalIndent(metadata, "", " ")
+	if err != nil {
+		log.ExitWithError(err)
+	}
+
+	return bytesJson
+}

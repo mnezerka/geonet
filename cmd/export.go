@@ -31,7 +31,7 @@ func addExportFlags(cmd *cobra.Command) {
 
 	// export
 	cmd.PersistentFlags().BoolVarP(&flagExport, "export", "e", false, "export content to various formats")
-	cmd.PersistentFlags().StringVar(&flagExportFormat, "export-format", "json", "export format (json, geojson, svg, txt)")
+	cmd.PersistentFlags().StringVar(&flagExportFormat, "export-format", "json", "export format (json, geojson, svg, txt, html, metadata)")
 	cmd.PersistentFlags().BoolVar(&config.Cfg.ShowPoints, "points", config.Cfg.ShowPoints, "include points in exported content ")
 	cmd.PersistentFlags().BoolVar(&config.Cfg.ShowEdges, "edges", config.Cfg.ShowEdges, "include edges in exported content")
 	addExportSvgFlags(cmd)
@@ -56,6 +56,9 @@ func export(s2store *s2store.S2Store) {
 			break
 		case "geojson":
 			fmt.Print(string(store.ExportGeoJson(s2store)))
+			break
+		case "metadata":
+			fmt.Print(string(store.ExportMetadata(s2store)))
 			break
 		case "txt":
 			fmt.Print(s2store.ToTxt())
