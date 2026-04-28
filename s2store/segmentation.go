@@ -3,7 +3,6 @@ package s2store
 import (
 	"mnezerka/geonet/log"
 	"mnezerka/geonet/utils"
-	"slices"
 )
 
 func (s *S2Store) getNextFreeSegment() []*Location {
@@ -73,50 +72,53 @@ func (s *S2Store) getNextFreeSegment() []*Location {
 
 func (s *S2Store) getNextPoint(path []*Location, tracks map[int64]bool) *Location {
 
-	// nothing to do if path is empty
 	if len(path) == 0 {
 		return nil
 	}
 
-	// get last point from path
 	p := path[len(path)-1]
 
 	log.Debugf("looking for path continuation (tracks limited to %v) from last path point: %d", tracks, p.Id)
 
-	// stop on track ends, begins and crossings
-	// there is an exception for path of length 1 - it can happen that first picked
-	// point was begin or end of track, and we have to process it correctly - case: track of two
-	// points where one is "begin" and second is "end"
 	if len(path) > 1 && (p.Begin || p.End || p.Crossing) {
 		log.Debugf("last path point %d is begin | end | crossing -> path is complete", p.Id)
 		return nil
 	}
 
-	// else we have another free point that is being processed
 	neighbourIds := s.findNeighbours(*p, tracks)
 	log.Debugf("all neighbours: %v", neighbourIds)
-	neighbourFreeIds := s.index.GetLocationsFiltered(func(l *Location) bool {
-		return !l.Begin && !l.End && !l.Crossing && slices.Contains(neighbourIds, l.Id)
-	})
+
+	var neighbourFreeIds []*Location
+	for _, nId := range neighbourIds {
+		l := s.index.GetLocation(nId)
+		if l != nil && !l.Begin && !l.End && !l.Crossing {
+			neighbourFreeIds = append(neighbourFreeIds, l)
+		}
+	}
 
 	log.Debugf("neighbours (not processed, not begin, not end, not crossing): %v", pointsToIds(neighbourFreeIds))
-	// pick first free neighbour point if exists
 	if len(neighbourFreeIds) > 0 {
 		return neighbourFreeIds[0]
 	}
 
-	// there are no free unprocessed points, try to find begin, end or crossing as closing point of the path
-	c := s.index.GetLocationsFiltered(func(l *Location) bool {
-		return (l.Begin || l.End || l.Crossing) &&
-			slices.Contains(neighbourIds, l.Id) &&
-			!slices.Contains(pointsToIds(path), l.Id)
-	})
+	pathIdSet := make(map[int64]struct{}, len(path))
+	for _, loc := range path {
+		pathIdSet[loc.Id] = struct{}{}
+	}
 
-	log.Debugf("possible closing points : %v", pointsToIds(c))
+	var closingPoints []*Location
+	for _, nId := range neighbourIds {
+		l := s.index.GetLocation(nId)
+		if l != nil && (l.Begin || l.End || l.Crossing) {
+			if _, inPath := pathIdSet[l.Id]; !inPath {
+				closingPoints = append(closingPoints, l)
+			}
+		}
+	}
 
-	// pick closing point if exists
-	if len(c) > 0 {
-		return c[0]
+	log.Debugf("possible closing points : %v", pointsToIds(closingPoints))
+	if len(closingPoints) > 0 {
+		return closingPoints[0]
 	}
 
 	return nil

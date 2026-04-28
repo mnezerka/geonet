@@ -95,6 +95,38 @@ func (si *SpatialIndex) Nearest(lat, lng float64, radiusMeters float64) []Neares
 	return results
 }
 
+func (si *SpatialIndex) NearestOne(lat, lng float64, radiusMeters float64) *NearestResult {
+	queryLatLng := s2.LatLngFromDegrees(lat, lng)
+	queryPoint := s2.PointFromLatLng(queryLatLng)
+
+	angle := s1.Angle(radiusMeters / 6371000)
+	cap := s2.CapFromCenterAngle(queryPoint, angle)
+
+	rc := &s2.RegionCoverer{
+		MinLevel: si.level,
+		MaxLevel: si.level,
+		MaxCells: 20,
+	}
+	cellUnion := rc.Covering(cap)
+
+	var best *NearestResult
+	for _, cellID := range cellUnion {
+		if locs, ok := si.data[cellID]; ok {
+			for _, loc := range locs {
+				dist := haversineDistance(lat, lng, loc.Lat, loc.Lng)
+				if dist <= radiusMeters && (best == nil || dist < best.DistanceMeters) {
+					best = &NearestResult{
+						Location:       loc,
+						DistanceMeters: dist,
+					}
+				}
+			}
+		}
+	}
+
+	return best
+}
+
 func (si *SpatialIndex) Remove(loc *Location) {
 
 	cell := s2.CellIDFromLatLng(s2.LatLngFromDegrees(loc.Lat, loc.Lng)).Parent(si.level)
@@ -123,10 +155,9 @@ func (si *SpatialIndex) Remove(loc *Location) {
 }
 
 func (si *SpatialIndex) RemoveByIds(ids []int64) {
-	for _, loc := range si.flat {
-		if slices.Contains(ids, loc.Id) {
+	for _, id := range ids {
+		if loc, ok := si.flat[id]; ok {
 			si.Remove(loc)
-			delete(si.flat, loc.Id)
 		}
 	}
 }
@@ -136,10 +167,9 @@ func (si *SpatialIndex) GetLocations() map[int64]*Location {
 }
 
 func (si *SpatialIndex) GetLocationsByIds(ids []int64) []*Location {
-	result := []*Location{}
-
-	for _, loc := range si.flat {
-		if slices.Contains(ids, loc.Id) {
+	result := make([]*Location, 0, len(ids))
+	for _, id := range ids {
+		if loc, ok := si.flat[id]; ok {
 			result = append(result, loc)
 		}
 	}

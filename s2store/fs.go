@@ -18,25 +18,28 @@ type S2StoreJson struct {
 
 func (s *S2Store) Save() {
 
-	toJson := S2StoreJson{}
-
-	toJson.LastPointId = s.lastPointId
-	toJson.LastTrackId = s.lastTrackId
+	toJson := S2StoreJson{
+		LastPointId: s.lastPointId,
+		LastTrackId: s.lastTrackId,
+		Tracks:      make([]*store.Track, 0, len(s.tracks)),
+		Edges:       make([]*S2Edge, 0, len(s.edges)),
+		Locations:   make([]*Location, 0, len(s.index.flat)),
+	}
 
 	for _, t := range s.tracks {
 		toJson.Tracks = append(toJson.Tracks, t)
-		s.stat.TracksRendered = int64(len(s.tracks))
 	}
+	s.stat.TracksRendered = int64(len(s.tracks))
 
 	for _, e := range s.edges {
 		toJson.Edges = append(toJson.Edges, e)
-		s.stat.EdgesRendered = int64(len(s.edges))
 	}
+	s.stat.EdgesRendered = int64(len(s.edges))
 
 	for _, l := range s.index.flat {
 		toJson.Locations = append(toJson.Locations, l)
-		s.stat.PointsRendered = int64(len(s.index.flat))
 	}
+	s.stat.PointsRendered = int64(len(s.index.flat))
 
 	// meta - json
 	sJson, err := json.MarshalIndent(toJson, "", " ")

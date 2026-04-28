@@ -85,18 +85,17 @@ func (s *S2Store) AddGpx(track *tracks.Track) error {
 		isBegin := i == 0
 		isEnd := i == len(track.Points)-1
 
-		nearest := s.index.Nearest(point.Latitude, point.Longitude, float64(s.cfg.MatchMaxDistance))
+		nearest := s.index.NearestOne(point.Latitude, point.Longitude, float64(s.cfg.MatchMaxDistance))
 
-		if len(nearest) > 0 {
-			log.Debugf("reusing point %d %.1fm", nearest[0].Location.Id, nearest[0].DistanceMeters)
+		if nearest != nil {
+			log.Debugf("reusing point %d %.1fm", nearest.Location.Id, nearest.DistanceMeters)
 			s.stat.PointsReused++
 
-			// update isBeign, isEnd, tracks
-			nearest[0].Location.Begin = nearest[0].Location.Begin || isBegin
-			nearest[0].Location.End = nearest[0].Location.End || isEnd
-			nearest[0].Location.Tracks[s2Track.Id] = true
+			nearest.Location.Begin = nearest.Location.Begin || isBegin
+			nearest.Location.End = nearest.Location.End || isEnd
+			nearest.Location.Tracks[s2Track.Id] = true
 
-			finalPointId = nearest[0].Location.Id
+			finalPointId = nearest.Location.Id
 		} else {
 			finalPointId = s.GenPointId()
 
@@ -190,19 +189,6 @@ func (s *S2Store) GetFirstEdgeFiltered(filter func(l *S2Edge) bool) *S2Edge {
 	return nil
 }
 
-func (s *S2Store) getEdgesForPointId(id int64) []*S2Edge {
-	result := []*S2Edge{}
-
-	for edgeId, edge := range s.edges {
-
-		if edgeId.P1 == id || edgeId.P2 == id {
-			result = append(result, edge)
-		}
-	}
-
-	return result
-}
-
 func (s *S2Store) removeEdgesByIds(ids []S2EdgeKey) {
 	for _, edgeId := range ids {
 		s.removeEdgeById(edgeId)
@@ -229,25 +215,21 @@ func (s *S2Store) removeEdgeById(edgeId S2EdgeKey) {
 }
 
 func (s *S2Store) updateCrossingForEdgePoints(edgeId S2EdgeKey) {
-	// first point
-	edges := s.getEdgesForPointId(edgeId.P1)
-	if len(edges) > 2 {
-		// set P1 as crossing
-		p1 := s.index.GetLocation(edgeId.P1)
-		if p1 == nil {
-			log.Errorf("inconsistent data, missing point %d for edge %v", edgeId.P1, edgeId)
-		}
+	p1 := s.index.GetLocation(edgeId.P1)
+	if p1 == nil {
+		log.Errorf("inconsistent data, missing point %d for edge %v", edgeId.P1, edgeId)
+		return
+	}
+	if len(p1.Edges) > 2 {
 		p1.Crossing = true
 	}
 
-	// second point
-	edges = s.getEdgesForPointId(edgeId.P2)
-	if len(edges) > 2 {
-		// set P2 as crossing
-		p2 := s.index.GetLocation(edgeId.P2)
-		if p2 == nil {
-			log.Errorf("inconsistent data, missing point %d for edge %v", edgeId.P2, edgeId)
-		}
+	p2 := s.index.GetLocation(edgeId.P2)
+	if p2 == nil {
+		log.Errorf("inconsistent data, missing point %d for edge %v", edgeId.P2, edgeId)
+		return
+	}
+	if len(p2.Edges) > 2 {
 		p2.Crossing = true
 	}
 }

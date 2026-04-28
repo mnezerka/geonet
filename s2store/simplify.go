@@ -46,11 +46,10 @@ func (s *S2Store) getEdgeById(id S2EdgeKey) *S2Edge {
 }
 
 func pointsToIds(points []*Location) []int64 {
-	var ids []int64
-	for i := 0; i < len(points); i++ {
-		ids = append(ids, points[i].Id)
+	ids := make([]int64, len(points))
+	for i, p := range points {
+		ids[i] = p.Id
 	}
-
 	return ids
 }
 
