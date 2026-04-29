@@ -64,7 +64,7 @@ func WandererReadMediaIndexFromFileSystem(filePath string) ([]WandererPost, erro
 	return result, err
 }
 
-func WandererStoreTrackMeta(post *WandererPost, track *WandererTrack, sourceUrl string, dir string, force bool) error {
+func WandererStoreTrackMeta(post *WandererPost, track *WandererTrack, sourceUrl string, dir string, force bool) (bool, error) {
 
 	fileName := utils.ConvertToSafeFilename(track.Url)
 	filePath := filepath.Join(dir, fileName)
@@ -75,21 +75,20 @@ func WandererStoreTrackMeta(post *WandererPost, track *WandererTrack, sourceUrl 
 	// check if file exists in not-forced mode
 	if !force {
 		if utils.FileExists(filePath) {
-			log.Info("  skipping, track file exists")
-			return nil
+			return false, nil
 		}
 	}
 
 	// fetch the gpx file from the URL
 	resp, err := http.Get(track.Url)
 	if err != nil {
-		return err
+		return false, err
 	}
 	defer resp.Body.Close()
 
 	gpxFile, err := gpx.Parse(resp.Body)
 	if err != nil {
-		return fmt.Errorf("error parsing gpx file: %s", err)
+		return false, fmt.Errorf("error parsing gpx file: %s", err)
 	}
 
 	// remove empty tracks and segments + merge all tracks into one signle track
@@ -110,11 +109,11 @@ func WandererStoreTrackMeta(post *WandererPost, track *WandererTrack, sourceUrl 
 	xmlBytes, err := gpxFile.ToXml(gpx.ToXmlParams{Version: "1.1", Indent: true})
 	file, err := os.Create(filePath)
 	if err != nil {
-		return fmt.Errorf("error creating the file: %s", err)
+		return false, fmt.Errorf("error creating the file: %s", err)
 	}
 	defer file.Close()
 
 	file.Write(xmlBytes)
 
-	return nil
+	return true, nil
 }

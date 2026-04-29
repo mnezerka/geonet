@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"fmt"
 	"mnezerka/geonet/log"
 	"mnezerka/geonet/tracks"
 	"mnezerka/geonet/utils"
@@ -47,6 +48,9 @@ var fetchWandererCmd = &cobra.Command{
 
 		log.Infof("%d wanderer posts will be processed", len(m))
 
+		downloaded := 0
+		total := 0
+
 		for i := 0; i < len(m); i++ {
 
 			// interrupt loop if number of tracks is limited
@@ -56,16 +60,25 @@ var fetchWandererCmd = &cobra.Command{
 				}
 			}
 
-			log.Infof("post %d '%s' (%d tracks)", i, m[i].Title, len(m[i].Tracks))
 			for j := 0; j < len(m[i].Tracks); j++ {
-				tracks.WandererStoreTrackMeta(
+				total++
+				fetched, err := tracks.WandererStoreTrackMeta(
 					&m[i],
 					&m[i].Tracks[j],
 					args[0],
 					fetchWandererCmdDir,
 					fetchWandererCmdForce)
+				if err != nil {
+					return err
+				}
+				if fetched {
+					downloaded++
+					fmt.Printf("downloaded: %s\n", m[i].Tracks[j].Url)
+				}
 			}
 		}
+
+		fmt.Printf("summary: %d downloaded, %d skipped, %d total\n", downloaded, total-downloaded, total)
 
 		return nil
 	},
