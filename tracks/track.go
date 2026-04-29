@@ -3,6 +3,7 @@ package tracks
 import (
 	"mnezerka/geonet/log"
 	"mnezerka/geonet/utils"
+	"time"
 
 	"github.com/mnezerka/gpxcli/gpxutils"
 	"github.com/tkrajina/gpxgo/gpx"
@@ -11,13 +12,15 @@ import (
 const ns = "http://geonet.bluesoft"
 
 type TrackMeta struct {
-	TrackId    string `json:"track_id" bson:"track_id"`
-	TrackUrl   string `json:"track_url" bson:"track_url"`
-	TrackTitle string `json:"track_title" bson:"track_title"`
-	SourceUrl  string `json:"source_url" bson:"source_url"`
-	SourceType string `json:"source_type" bson:"source_type"`
-	PostTitle  string `json:"post_title" bson:"post_title"`
-	PostUrl    string `json:"post_url" bson:"post_url"`
+	TrackId    string    `json:"track_id" bson:"track_id"`
+	TrackUrl   string    `json:"track_url" bson:"track_url"`
+	TrackTitle string    `json:"track_title" bson:"track_title"`
+	SourceUrl  string    `json:"source_url" bson:"source_url"`
+	SourceType string    `json:"source_type" bson:"source_type"`
+	PostTitle  string    `json:"post_title" bson:"post_title"`
+	PostUrl    string    `json:"post_url" bson:"post_url"`
+	LengthKm   float64   `json:"length_km" bson:"length_km"`
+	TrackDate  time.Time `json:"track_date" bson:"track_date"`
 }
 type Track struct {
 	FilePath string
@@ -59,6 +62,10 @@ func NewTrack(filePath string) *Track {
 	if node, found := t.gpxFile.MetadataExtensions.GetNode(ns, "sourceurl"); found {
 		t.Meta.SourceUrl = node.Data
 	}
+
+	// compute fields from gpx content
+	t.Meta.LengthKm = t.computeLengthKm()
+	t.Meta.TrackDate = t.computeTrackDate()
 
 	// compute fields if not read from meta
 	if len(t.Meta.TrackTitle) == 0 {
@@ -116,4 +123,31 @@ func getTitleFromGpxContent(gpxFile *gpx.GPX, defaultValue string) string {
 	}
 
 	return result
+}
+
+func (t *Track) computeLengthKm() float64 {
+	if len(t.Points) == 0 {
+		return 0
+	}
+
+	points := make([]gpx.Point, len(t.Points))
+	for i, p := range t.Points {
+		points[i] = gpx.Point{
+			Latitude:  p.Latitude,
+			Longitude: p.Longitude,
+			Elevation: p.Elevation,
+		}
+	}
+
+	lengthMeters := gpx.Length3D(points)
+	return lengthMeters / 1000.0
+}
+
+func (t *Track) computeTrackDate() time.Time {
+	for _, p := range t.Points {
+		if !p.Timestamp.IsZero() {
+			return p.Timestamp
+		}
+	}
+	return time.Time{}
 }
