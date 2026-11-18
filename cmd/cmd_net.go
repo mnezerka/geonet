@@ -1,11 +1,15 @@
 package cmd
 
 import (
+	"fmt"
+	"os"
+
 	"mnezerka/geonet/config"
 	"mnezerka/geonet/log"
 	"mnezerka/geonet/s2store"
 	"mnezerka/geonet/tracks"
 
+	"github.com/schollz/progressbar/v3"
 	"github.com/spf13/cobra"
 )
 
@@ -30,18 +34,40 @@ var cmdNet = &cobra.Command{
 
 			log.Infof("generating geonet from %d input files", len(args))
 
-			log.Infof("building network")
-			for file_ix := 0; file_ix < len(args); file_ix++ {
+			limit := len(args)
+			if cmdGenLimit >= 0 && cmdGenLimit < limit {
+				limit = cmdGenLimit
+			}
 
-				// interrupt loop if number of tracks is limited
-				if cmdGenLimit >= 0 {
-					if file_ix >= cmdGenLimit {
-						break
-					}
-				}
+			var bar *progressbar.ProgressBar
+			if !v {
+				bar = progressbar.NewOptions(limit,
+					progressbar.OptionSetWriter(os.Stderr),
+					progressbar.OptionSetDescription(fmt.Sprintf("[%d/%d]", 0, limit)),
+					progressbar.OptionSetWidth(40),
+					progressbar.OptionShowIts(),
+					progressbar.OptionSetItsString("files"),
+					progressbar.OptionSetTheme(progressbar.Theme{
+						Saucer:        "=",
+						SaucerHead:    ">",
+						SaucerPadding: " ",
+						BarStart:      "[",
+						BarEnd:        "]",
+					}),
+					progressbar.OptionOnCompletion(func() { fmt.Fprint(os.Stderr, "\n") }),
+				)
+			} else {
+				log.Infof("building network")
+			}
 
+			for file_ix := 0; file_ix < limit; file_ix++ {
 				t := tracks.NewTrack(args[file_ix])
-				log.Infof("  %d/%d %s (%d points)", file_ix+1, len(args), args[file_ix], len(t.Points))
+
+				if v {
+					log.Infof("  %d/%d %s (%d points)", file_ix+1, limit, args[file_ix], len(t.Points))
+				} else {
+					bar.Describe(fmt.Sprintf("[%d/%d]", file_ix+1, limit))
+				}
 
 				if cmdGenInterpolate {
 					t.InterpolateDistance(config.Cfg.InterpolationDistance)
@@ -50,6 +76,10 @@ var cmdNet = &cobra.Command{
 				err := store.AddGpx(t)
 				if err != nil {
 					return err
+				}
+
+				if bar != nil {
+					bar.Add(1)
 				}
 			}
 		}

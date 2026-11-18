@@ -5,6 +5,7 @@ import (
 	"os"
 	"strings"
 
+	apexlog "github.com/apex/log"
 	"mnezerka/geonet/log"
 
 	"github.com/spf13/cobra"
@@ -59,5 +60,12 @@ func initConfig() {
 	if flagCount > 1 {
 		fmt.Fprintln(os.Stderr, "flags -v, -q, and --verbosity are mutually exclusive; only one can be used at a time")
 		os.Exit(1)
+	}
+
+	// suppress Info-level output from gpxcli/gpxutils (apex/log) unless verbose
+	if v {
+		apexlog.SetLevel(apexlog.InfoLevel)
+	} else {
+		apexlog.SetLevel(apexlog.WarnLevel)
 	}
 }
